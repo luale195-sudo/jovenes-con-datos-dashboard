@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riobamba Integral — Censo, Voces Jóvenes y Observatorio Económico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root{
+  --night:#1A1F2E;
+  --night-2:#232A3D;
+  --night-3:#2B3349;
+  --bone:#F2EDE4;
+  --bone-dim:#D9D2C3;
+  --terra:#E8623C;
+  --terra-dim:#C44E2E;
+  --paramo:#5B8C7B;
+  --gold:#D4AF6A;
+  --earth-red:#C25450;
+  --blue:#7D9CB8;
+  --violet:#9B8AC4;
+  --line:rgba(242,237,228,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--night); color:var(--bone); font-family:'Space Grotesk',sans-serif; line-height:1.5; overflow-x:hidden;}
+.mono{font-family:'JetBrains Mono',monospace;}
+h1,h2,h3{font-family:'Fraunces',serif; font-weight:600; letter-spacing:-0.01em;}
+a{color:var(--terra);}
+button{font-family:inherit; cursor:pointer;}
+
+.topo-bg{position:fixed; inset:0; z-index:0; opacity:0.05; pointer-events:none;
+  background-image:
+    repeating-radial-gradient(circle at 20% 30%, transparent 0, transparent 38px, var(--bone) 39px, transparent 40px),
+    repeating-radial-gradient(circle at 80% 70%, transparent 0, transparent 52px, var(--bone) 53px, transparent 54px);
+}
+.wrap{position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:0 28px;}
+
+/* ===== HERO ===== */
+.hero{min-height:80vh; display:flex; flex-direction:column; justify-content:center; border-bottom:1px solid var(--line); padding:60px 0 50px;}
+.hero .eyebrow{font-family:'JetBrains Mono',monospace; font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:28px; display:flex; align-items:center; gap:12px;}
+.hero .eyebrow::before{content:''; width:28px; height:1px; background:var(--gold);}
+.hero h1{font-size:clamp(2.2rem,5.6vw,4.6rem); line-height:1.05; max-width:980px; color:var(--bone);}
+.hero h1 em{font-style:italic; color:var(--terra); font-weight:600;}
+.hero .sub{margin-top:24px; max-width:700px; font-size:1.05rem; color:var(--bone-dim);}
+
+/* ===== Source badges (3-source legend) ===== */
+.source-legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:36px;}
+.src-badge{display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.03em; border:1px solid transparent;}
+.src-badge .dot{width:8px; height:8px; border-radius:50%;}
+.src-badge.censo{background:rgba(91,140,123,0.12); border-color:rgba(91,140,123,0.4); color:var(--paramo);}
+.src-badge.censo .dot{background:var(--paramo);}
+.src-badge.encuesta{background:rgba(232,98,60,0.12); border-color:rgba(232,98,60,0.4); color:var(--terra);}
+.src-badge.encuesta .dot{background:var(--terra);}
+.src-badge.observatorio{background:rgba(155,138,196,0.14); border-color:rgba(155,138,196,0.4); color:var(--violet);}
+.src-badge.observatorio .dot{background:var(--violet);}
+.src-badge .n{color:var(--bone); font-weight:600; margin-left:2px;}
+.glossary-quick-btn{display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.03em; background:transparent; border:1px dashed var(--gold); color:var(--gold); transition:all 0.18s ease;}
+.glossary-quick-btn:hover{background:var(--gold); color:var(--night); border-style:solid;}
+
+/* ===== FILTER BAR (sticky) ===== */
+.filter-bar{position:sticky; top:0; z-index:50; background:rgba(26,31,46,0.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); padding:14px 0;}
+.filter-bar .wrap{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.filter-bar .flabel{font-family:'JetBrains Mono',monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--bone-dim); margin-right:6px;}
+.filter-btn{background:var(--night-2); border:1px solid var(--line); color:var(--bone-dim); padding:8px 16px; border-radius:18px; font-size:0.82rem; font-family:'Space Grotesk',sans-serif; transition:all 0.18s ease;}
+.filter-btn:hover{border-color:var(--bone-dim); color:var(--bone);}
+.filter-btn.active{background:var(--terra); border-color:var(--terra); color:var(--night); font-weight:600;}
+.filter-btn[data-filter="censo"].active{background:var(--paramo); border-color:var(--paramo);}
+.filter-btn[data-filter="encuesta"].active{background:var(--terra); border-color:var(--terra);}
+.filter-btn[data-filter="observatorio"].active{background:var(--violet); border-color:var(--violet);}
+.filter-count{margin-left:auto; font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--bone-dim);}
+
+/* ===== Section structure ===== */
+section{padding:72px 0; border-bottom:1px solid var(--line); position:relative;}
+section:last-of-type{border-bottom:none;}
+section.is-hidden{display:none;}
+.section-head{display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:16px; margin-bottom:40px;}
+.section-head .tag{font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--paramo);}
+.section-head h2{font-size:clamp(1.5rem,3vw,2.3rem); color:var(--bone);}
+.section-head .count{font-family:'JetBrains Mono',monospace; font-size:0.8rem; color:var(--bone-dim);}
+.macro-tag{font-family:'JetBrains Mono',monospace; font-size:0.66rem; letter-spacing:0.1em; text-transform:uppercase; padding:5px 12px; border-radius:4px; display:inline-block; margin-bottom:14px;}
+.macro-tag.censo{background:rgba(91,140,123,0.14); color:var(--paramo);}
+.macro-tag.encuesta{background:rgba(232,98,60,0.14); color:var(--terra);}
+.macro-tag.observatorio{background:rgba(155,138,196,0.16); color:var(--violet);}
+
+/* ===== Findings / KPI ===== */
+.findings{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line);}
+.finding{background:var(--night); padding:28px 24px;}
+.finding .fnum{font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--terra); letter-spacing:0.08em;}
+.finding h3{font-size:1.12rem; margin:12px 0 8px; color:var(--bone); font-weight:600;}
+.finding p{font-size:0.88rem; color:var(--bone-dim);}
+
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); margin-bottom:44px;}
+.kpi{background:var(--night-2); padding:22px 20px;}
+.kpi .val{font-family:'Fraunces',serif; font-size:1.85rem; font-weight:700; color:var(--gold);}
+.kpi .lbl{font-family:'JetBrains Mono',monospace; font-size:0.64rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--bone-dim); margin-top:6px;}
+
+/* Decade comparison signature element */
+.decade-shift{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:18px; margin:10px 0;}
+.decade-shift .yr{text-align:center;}
+.decade-shift .yr .y{font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--bone-dim); letter-spacing:0.06em;}
+.decade-shift .yr .v{font-family:'Fraunces',serif; font-size:1.5rem; font-weight:700;}
+.decade-shift .yr.then .v{color:var(--bone-dim);}
+.decade-shift .yr.now .v{color:var(--terra);}
+.decade-shift .arrow{font-size:1.3rem; color:var(--gold);}
+
+/* ===== Chart cards ===== */
+.chart-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:22px;}
+.chart-grid.single{grid-template-columns:1fr;}
+.chart-grid.three{grid-template-columns:repeat(3,1fr);}
+@media(max-width:900px){.chart-grid, .chart-grid.three{grid-template-columns:1fr;}}
+
+.chart-card{background:var(--night-2); border:1px solid var(--line); padding:26px; display:flex; flex-direction:column; scroll-margin-top:90px; transition:box-shadow 0.3s ease, border-color 0.3s ease;}
+.chart-card.pulse, section.pulse{animation:pulseGlow 1.8s ease;}
+@keyframes pulseGlow{
+  0%{box-shadow:0 0 0 0 rgba(212,175,106,0); border-color:var(--line);}
+  20%{box-shadow:0 0 0 4px rgba(212,175,106,0.5); border-color:var(--gold);}
+  100%{box-shadow:0 0 0 0 rgba(212,175,106,0); border-color:var(--line);}
+}
+.chart-card .chead{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; gap:10px;}
+.chart-card h3{font-size:1.0rem; color:var(--bone); font-weight:600;}
+.chart-card .subhead{font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; display:block;}
+.chart-card .chart-box{position:relative; flex:1; min-height:270px;}
+.chart-card .insight{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); font-size:0.83rem; color:var(--bone-dim);}
+.chart-card .insight strong{color:var(--terra);}
+.chart-card .src-tag{flex-shrink:0;}
+
+/* Toggle controls inside chart cards */
+.chart-toggle{display:flex; gap:6px; flex-wrap:wrap;}
+.toggle-btn{background:var(--night-3); border:1px solid var(--line); color:var(--bone-dim); padding:5px 11px; border-radius:14px; font-size:0.7rem; font-family:'JetBrains Mono',monospace;}
+.toggle-btn.active{background:var(--gold); border-color:var(--gold); color:var(--night); font-weight:600;}
+
+/* Slider control */
+.slider-control{margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
+.slider-control .srow{display:flex; align-items:center; gap:12px;}
+.slider-control input[type=range]{flex:1; accent-color:var(--gold); height:4px;}
+.slider-control .syear{font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:var(--gold); min-width:78px; text-align:right;}
+.slider-control .slabel{font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--bone-dim); text-transform:uppercase; letter-spacing:0.05em;}
+
+.scope-note{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--blue); background:rgba(125,156,184,0.1); border:1px solid rgba(125,156,184,0.3); padding:3px 9px; border-radius:3px; margin-top:8px;}
+.approx-note{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--gold); background:rgba(212,175,106,0.08); border:1px solid rgba(212,175,106,0.3); padding:3px 9px; border-radius:3px; margin-top:6px;}
+
+.compare-table{width:100%; border-collapse:collapse; font-size:0.85rem;}
+.compare-table th{text-align:left; padding:11px 13px; font-family:'JetBrains Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--gold); border-bottom:1px solid var(--line);}
+.compare-table td{padding:11px 13px; border-bottom:1px solid var(--line); color:var(--bone-dim);}
+.compare-table td.label{color:var(--bone); font-weight:500;}
+.compare-table td.hl{color:var(--terra); font-family:'JetBrains Mono',monospace;}
+.compare-table td.v{font-family:'JetBrains Mono',monospace;}
+.compare-table tr:last-child td{border-bottom:none;}
+
+.callout{margin-top:22px; padding:18px 22px; border-left:3px solid var(--paramo); background:rgba(91,140,123,0.06); font-size:0.87rem; color:var(--bone-dim);}
+.callout strong{color:var(--bone);}
+.callout.warn{border-left-color:var(--terra); background:rgba(232,98,60,0.06);}
+.callout.info{border-left-color:var(--violet); background:rgba(155,138,196,0.07);}
+.callout.gold{border-left-color:var(--gold); background:rgba(212,175,106,0.06);}
+
+.bridge-box{background:var(--night-2); border:1px solid var(--terra); padding:30px; margin-top:28px;}
+.bridge-box h3{color:var(--terra); font-size:1.18rem; margin-bottom:13px;}
+.bridge-box p{color:var(--bone-dim); font-size:0.9rem; margin-bottom:10px;}
+.bridge-box .triplet{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:16px;}
+.bridge-box .pair{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:16px;}
+@media(max-width:900px){.bridge-box .triplet{grid-template-columns:1fr;}}
+.bridge-box .triplet>div, .bridge-box .pair>div{padding:15px; background:var(--night); border:1px solid var(--line);}
+.bridge-box .src{font-family:'JetBrains Mono',monospace; font-size:0.6rem; text-transform:uppercase; color:var(--gold); letter-spacing:0.05em;}
+.bridge-box .stat{font-family:'Fraunces',serif; font-size:1.4rem; font-weight:700; color:var(--bone); margin:6px 0;}
+.bridge-box .desc{font-size:0.8rem; color:var(--bone-dim);}
+
+/* ===== Word cloud ===== */
+.wordcloud{display:flex; flex-wrap:wrap; gap:10px 16px; align-items:baseline; justify-content:center; padding:28px 10px; min-height:200px; align-content:center;}
+.wordcloud span{font-family:'Fraunces',serif; color:var(--bone);}
+
+/* ===== Quotes ===== */
+.quotes{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:16px;}
+.quote{background:var(--night-2); border:1px solid var(--line); padding:20px 22px; font-family:'Fraunces',serif; font-size:0.96rem; font-style:italic; color:var(--bone); position:relative;}
+.quote::before{content:'"'; color:var(--terra); font-size:1.9rem; font-family:'Fraunces',serif; position:absolute; top:4px; left:13px; opacity:0.5;}
+.quote-text{padding-left:13px; padding-top:5px; display:block;}
+
+/* ===== Stats table ===== */
+.stat-table{width:100%; border-collapse:collapse; font-size:0.85rem;}
+.stat-table th{text-align:left; padding:11px 13px; font-family:'JetBrains Mono',monospace; font-size:0.66rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold); border-bottom:1px solid var(--line);}
+.stat-table td{padding:11px 13px; border-bottom:1px solid var(--line); color:var(--bone-dim);}
+.stat-table td.test-name{color:var(--bone); font-weight:500;}
+.stat-table tr:last-child td{border-bottom:none;}
+.sig-no{color:var(--bone-dim); font-family:'JetBrains Mono',monospace; font-size:0.76rem;}
+.sig-no.warn{color:var(--earth-red);}
+.stats-note{margin-top:22px; padding:18px 22px; border-left:3px solid var(--terra); background:rgba(232,98,60,0.05); font-size:0.86rem; color:var(--bone-dim);}
+.stats-note strong{color:var(--bone);}
+
+/* ===== INSIGHTS SECTION (Sección 2 pedagógica) ===== */
+.insights-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:22px;}
+.insight-card{background:var(--night-2); border:1px solid var(--line); border-left:3px solid var(--gold); padding:26px; display:flex; flex-direction:column; gap:14px;}
+.insight-card .inum{font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--gold); letter-spacing:0.1em;}
+.insight-card h3{font-size:1.12rem; color:var(--bone); line-height:1.3;}
+.insight-card .audience-block{padding:12px 14px; background:var(--night); border-radius:6px;}
+.insight-card .audience-block .alabel{font-family:'JetBrains Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--paramo); margin-bottom:6px; display:block;}
+.insight-card .audience-block.pro .alabel{color:var(--blue);}
+.insight-card .audience-block p{font-size:0.85rem; color:var(--bone-dim); line-height:1.5;}
+.insight-card .sources-used{display:flex; gap:6px; flex-wrap:wrap;}
+.insight-link{margin-top:6px; align-self:flex-start; background:transparent; border:1px solid var(--gold); color:var(--gold); padding:8px 16px; border-radius:18px; font-size:0.78rem; font-family:'JetBrains Mono',monospace; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s ease;}
+.insight-link:hover{background:var(--gold); color:var(--night);}
+
+/* ===== Layout diagram (kept from file 2) ===== */
+.layout-diagram{background:var(--night-2); border:1px solid var(--line); padding:30px; font-family:'JetBrains Mono',monospace; font-size:0.75rem; color:var(--bone-dim); white-space:pre; overflow-x:auto; line-height:1.6;}
+.layout-diagram .hl{color:var(--terra);} .layout-diagram .hl2{color:var(--paramo);} .layout-diagram .hl3{color:var(--gold);}
+
+/* ===== Glosario ===== */
+.glossary-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line);}
+.gterm{background:var(--night); padding:22px 24px;}
+.gterm .gtitle{display:flex; align-items:baseline; gap:10px; margin-bottom:8px; flex-wrap:wrap;}
+.gterm .gtitle .acro{font-family:'Fraunces',serif; font-size:1.15rem; font-weight:700; color:var(--gold);}
+.gterm .gtitle .full{font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--bone-dim); text-transform:uppercase; letter-spacing:0.02em;}
+.gterm p{font-size:0.86rem; color:var(--bone-dim); line-height:1.5;}
+.gterm p strong{color:var(--bone);}
+.glossary-toggle-wrap{text-align:center; margin-bottom:28px;}
+.glossary-open-btn{background:var(--night-2); border:1px solid var(--gold); color:var(--gold); padding:10px 22px; border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:0.78rem; letter-spacing:0.04em; display:inline-flex; align-items:center; gap:8px;}
+.glossary-open-btn:hover{background:var(--gold); color:var(--night);}
+#glossaryBody{display:none;}
+#glossaryBody.open{display:block;}
+.gcat{font-family:'JetBrains Mono',monospace; font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--paramo); margin:30px 0 14px;}
+.gcat:first-child{margin-top:0;}
+
+/* ===== Glossary inline tooltips (auto-wrapped terms) ===== */
+.gloss-term{border-bottom:1px dotted var(--gold); cursor:help; position:relative; color:inherit;}
+.gloss-term:hover{color:var(--gold);}
+.gloss-term:hover::after{
+  content: attr(data-tooltip);
+  position:absolute; bottom:135%; left:50%; transform:translateX(-50%);
+  background:var(--night-3); border:1px solid var(--gold); color:var(--bone);
+  padding:11px 14px; border-radius:7px; font-size:0.78rem; line-height:1.45;
+  width:240px; z-index:300; box-shadow:0 6px 18px rgba(0,0,0,0.45);
+  font-family:'Space Grotesk',sans-serif; font-weight:400; white-space:normal; text-align:left;
+}
+.gloss-term:hover::before{
+  content:''; position:absolute; bottom:122%; left:50%; transform:translateX(-50%);
+  border:6px solid transparent; border-top-color:var(--gold); z-index:300;
+}
+@media(max-width:640px){ .gloss-term:hover::after{width:190px; font-size:0.74rem;} }
+
+/* ===== City selector ===== */
+.city-selector-wrap{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:30px; padding:14px 18px; background:var(--night-2); border:1px solid var(--line); border-radius:8px;}
+.city-selector-wrap .flabel{font-family:'JetBrains Mono',monospace; font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--bone-dim);}
+.city-pill{background:var(--night-3); border:1px solid var(--line); color:var(--bone-dim); padding:7px 16px; border-radius:16px; font-size:0.8rem; font-family:'Space Grotesk',sans-serif; display:inline-flex; align-items:center; gap:7px; transition:all 0.18s ease;}
+.city-pill .cdot{width:8px; height:8px; border-radius:50%; background:var(--city-color); opacity:0.4; transition:opacity 0.18s ease;}
+.city-pill.active{border-color:var(--city-color); color:var(--bone);}
+.city-pill.active .cdot{opacity:1;}
+.city-pill:not(.active){opacity:0.5;}
+.city-pill:hover{opacity:0.85;}
+.city-selector-note{font-family:'JetBrains Mono',monospace; font-size:0.66rem; color:var(--bone-dim); margin-left:auto;}
+
+/* ===== Guided tour ===== */
+.tour-start-btn{display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:20px; font-family:'JetBrains Mono',monospace; font-size:0.72rem; letter-spacing:0.03em; background:transparent; border:1px dashed var(--terra); color:var(--terra); transition:all 0.18s ease;}
+.tour-start-btn:hover{background:var(--terra); color:var(--night); border-style:solid;}
+.tour-bar{position:fixed; left:0; right:0; bottom:-200px; z-index:500; background:rgba(20,24,36,0.97); backdrop-filter:blur(10px); border-top:2px solid var(--gold); padding:16px 24px; transition:bottom 0.35s ease; box-shadow:0 -8px 24px rgba(0,0,0,0.4);}
+.tour-bar.active{bottom:0;}
+.tour-bar .twrap{max-width:1180px; margin:0 auto; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+.tour-bar .tour-progress{font-family:'JetBrains Mono',monospace; font-size:0.68rem; color:var(--gold); letter-spacing:0.05em; flex-shrink:0;}
+.tour-bar .tour-caption{flex:1; font-size:0.92rem; color:var(--bone); min-width:200px;}
+.tour-bar .tour-controls{display:flex; gap:8px; flex-shrink:0;}
+.tour-bar button{background:var(--night-2); border:1px solid var(--line); color:var(--bone-dim); padding:7px 14px; border-radius:14px; font-size:0.78rem; font-family:'JetBrains Mono',monospace;}
+.tour-bar button:hover{border-color:var(--gold); color:var(--bone);}
+.tour-bar button#tourExit:hover{border-color:var(--earth-red); color:var(--earth-red);}
+@media(max-width:768px){ .tour-bar .twrap{flex-direction:column; align-items:stretch;} .tour-bar .tour-controls{justify-content:center;} }
+
+footer p{font-size:0.78rem; color:var(--bone-dim); font-family:'JetBrains Mono',monospace; line-height:1.8;}
+
+@media(max-width:640px){
+  .hero{min-height:auto; padding:44px 0 40px;}
+  section{padding:50px 0;}
+  .decade-shift{grid-template-columns:1fr; text-align:center;}
+  .bridge-box .pair, .bridge-box .triplet{grid-template-columns:1fr;}
+  .filter-bar .wrap{gap:8px;}
+  .filter-count{width:100%; margin-left:0; margin-top:4px;}
+}
+a:focus-visible, button:focus-visible{outline:2px solid var(--terra); outline-offset:3px;}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto;} .chart-card.pulse, section.pulse{animation:none;}}
+</style>
+</head>
+<body>
+<div class="topo-bg"></div>
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Riobamba · Censo INEC + Encuesta Piloto + Observatorio Económico UNACH</div>
+    <h1>Tres lentes, <em>una ciudad</em>:<br>lo que dicen 260,882 personas,<br>17 jóvenes y 4 índices económicos.</h1>
+    <p class="sub">Un dashboard integrado que combina datos censales representativos, una encuesta piloto exploratoria y el boletín económico regional de la UNACH — para enseñar a leer datos con el mismo rigor con el que se producen.</p>
+
+    <div class="source-legend">
+      <span class="src-badge censo"><span class="dot"></span>Censo INEC 2022 <span class="n">n=260,882</span></span>
+      <span class="src-badge encuesta"><span class="dot"></span>Encuesta Piloto <span class="n">n=17</span></span>
+      <span class="src-badge observatorio"><span class="dot"></span>Observatorio Económico UNACH <span class="n">Boletín N°15</span></span>
+      <button class="glossary-quick-btn" id="glossaryQuickBtn">📖 Ver glosario de términos →</button>
+      <button class="tour-start-btn" id="tourStartBtn">▶ Iniciar tour guiado</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FILTER BAR ============ -->
+<div class="filter-bar">
+  <div class="wrap">
+    <span class="flabel">Filtrar por fuente:</span>
+    <button class="filter-btn active" data-filter="todos">Todos</button>
+    <button class="filter-btn" data-filter="censo">Censo INEC</button>
+    <button class="filter-btn" data-filter="encuesta">Encuesta Piloto</button>
+    <button class="filter-btn" data-filter="observatorio">Observatorio Económico</button>
+    <span class="filter-count" id="filterCount"></span>
+  </div>
+</div>
+
+<!-- ============ GLOSARIO ============ -->
+<section id="glosario" data-source="todos">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="tag">Referencia rápida</div><h2>Glosario — todas las siglas e índices de este dashboard</h2></div>
+    </div>
+
+    <div class="glossary-toggle-wrap">
+      <button class="glossary-open-btn" id="glossaryToggleBtn">📖 Mostrar / ocultar glosario completo</button>
+    </div>
+
+    <div id="glossaryBody">
+
+      <div class="gcat">Índices del Observatorio Económico UNACH</div>
+      <div class="glossary-grid">
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">IMD</span><span class="full">Índice de Madurez Digital</span></div>
+          <p>Mide de <strong>0 a 1</strong> qué tanto una ciudad adopta y usa la tecnología digital: acceso, conectividad, habilidades, uso de servicios, participación ciudadana digital, etc. Combina hasta 12 dimensiones en un solo número.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">ICT</span><span class="full">Índice de Competitividad Territorial</span></div>
+          <p>Mide de <strong>0 a 1</strong> qué tan competitivo es un territorio, combinando 5 componentes con el mismo peso: económico-empresarial, infraestructura, sociodemográfico, institucional y ambiental.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">IPC</span><span class="full">Índice de Precios al Consumidor</span></div>
+          <p>Mide la <strong>inflación</strong> — cuánto suben o bajan los precios de una canasta de bienes y servicios en el tiempo. Aquí se calculó con la fórmula de <strong>Laspeyres</strong> (compara precios actuales contra un período base fijo).</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">ICC</span><span class="full">Índice de Confianza del Consumidor</span></div>
+          <p>Mide el <strong>optimismo de los hogares</strong> sobre su situación económica, en escala 0–100. <strong>0</strong>=todo empeora, <strong>50</strong>=sigue igual, <strong>100</strong>=todo mejora.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">IEE</span><span class="full">Índice de Expectativas de la Economía</span></div>
+          <p>Mide la <strong>confianza empresarial</strong> a futuro, sector por sector (servicios, comercio, industria, construcción). Por debajo de 50 = "umbral pesimista"; por encima = "umbral optimista".</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">EMOE</span><span class="full">Encuesta Mensual de Opinión Empresarial</span></div>
+          <p>La encuesta del Banco Central que alimenta el IEE, aplicada a las empresas con mayor volumen de ventas de cada sector.</p>
+        </div>
+      </div>
+
+      <div class="gcat">Términos del Censo INEC</div>
+      <div class="glossary-grid">
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">NBI</span><span class="full">Necesidades Básicas Insatisfechas</span></div>
+          <p>Mide pobreza <strong>estructural</strong> (no solo de ingreso) en 5 dimensiones: vivienda, servicios básicos, educación, capacidad económica y hacinamiento. Un hogar es pobre por NBI si le falta al menos una.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">BGU</span><span class="full">Bachillerato General Unificado</span></div>
+          <p>Los 3 últimos años de educación secundaria en Ecuador (equivalente a "el colegio" en sus grados finales), para jóvenes de 15-17 años.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">PET / PEA</span><span class="full">Población en Edad / Económicamente Activa</span></div>
+          <p>PET = personas en edad legal de trabajar. PEA (o "fuerza de trabajo") = quienes de la PET trabajan o buscan trabajo activamente.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Déficit cuantitativo</span><span class="full">Vivienda</span></div>
+          <p>Faltan viviendas físicas — hogares que comparten una sola casa cuando deberían tener una propia.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Déficit cualitativo</span><span class="full">Vivienda</span></div>
+          <p>Hay suficientes viviendas, pero en mal estado — materiales inadecuados o servicios básicos incompletos.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Censo</span><span class="full">vs. Encuesta</span></div>
+          <p>El <strong>censo</strong> cuenta a toda la población (no tiene margen de error muestral). La <strong>encuesta</strong> consulta solo a una parte y luego generaliza — por eso necesita pruebas estadísticas.</p>
+        </div>
+      </div>
+
+      <div class="gcat">Estadística (sección de la Encuesta Piloto)</div>
+      <div class="glossary-grid">
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Valor p</span><span class="full">p-value</span></div>
+          <p>La probabilidad de ver un resultado así de "diferente" solo por azar. <strong>p &lt; 0,05</strong> suele considerarse significativo; los valores de este dashboard están casi todos por encima, por eso se marcan "no significativo".</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Chi-cuadrado (χ²)</span><span class="full">Prueba de independencia</span></div>
+          <p>Compara si dos variables categóricas (ej. género y problema #1) están relacionadas o son independientes entre sí.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Correlación de Pearson (r)</span><span class="full">−1 a +1</span></div>
+          <p>Mide si dos variables numéricas suben o bajan juntas. <strong>r cercano a 0</strong> = sin relación lineal; cercano a ±1 = relación fuerte.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">T-test</span><span class="full">Prueba de medias</span></div>
+          <p>Compara el promedio de dos grupos (ej. edad de quienes priorizan "empleo" vs. "inseguridad") para ver si la diferencia es real o casualidad.</p>
+        </div>
+      </div>
+
+      <div class="gcat">Otros términos</div>
+      <div class="glossary-grid">
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">Zona 3</span><span class="full">Planificación territorial Ecuador</span></div>
+          <p>Región centro del Ecuador que agrupa Chimborazo, Tungurahua, Cotopaxi y Pastaza — por eso el Observatorio compara Riobamba, Ambato, Latacunga y Milagro juntas.</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">CIIU</span><span class="full">Clasificación Industrial Internacional Uniforme</span></div>
+          <p>El sistema estándar para clasificar empresas por su actividad económica (servicios, comercio, industria, etc.).</p>
+        </div>
+        <div class="gterm">
+          <div class="gtitle"><span class="acro">VAB</span><span class="full">Valor Agregado Bruto</span></div>
+          <p>El valor que aporta cada sector económico a la producción total — se usa para ponderar el IEE Global.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESUMEN EJECUTIVO INTEGRADO ============ -->
+<section id="resumen" data-source="todos">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="tag">Sección 1 · Panel de datos interactivo — Resumen ejecutivo</div><h2>Seis señales que cruzan las tres fuentes</h2></div>
+      <div class="count mono">260,882 censo · 17 encuesta · 4 ciudades observatorio</div>
+    </div>
+    <div class="findings">
+      <div class="finding">
+        <div class="fnum mono">SEÑAL 01</div>
+        <h3>El empleo juvenil es el problema más respaldado por evidencia</h3>
+        <p>9 de 17 jóvenes encuestados lo señalan como problema #1, y el censo confirma que el 48% de todos los desocupados del cantón tiene 18-29 años — la concentración más alta de cualquier grupo de edad.</p>
+      </div>
+      <div class="finding">
+        <div class="fnum mono">SEÑAL 02</div>
+        <h3>La participación ciudadana digital es el punto más débil, medido dos veces</h3>
+        <p>El IMD de Riobamba muestra su valor más bajo en "participación y ciudadanía digital" (0,52). De forma independiente, la encuesta piloto mide solo 2.0/5 de satisfacción con servicios públicos. Dos instrumentos distintos, la misma conclusión.</p>
+      </div>
+      <div class="finding">
+        <div class="fnum mono">SEÑAL 03</div>
+        <h3>Vivienda e infraestructura son la debilidad estructural compartida</h3>
+        <p>El componente de Infraestructura es el más bajo del Índice de Competitividad Territorial de Riobamba (0,22). El censo confirma que el 43,5% de los hogares ya no es propietario, y 7 de 17 jóvenes citan vivienda como problema secundario.</p>
+      </div>
+      <div class="finding">
+        <div class="fnum mono">SEÑAL 04</div>
+        <h3>El analfabetismo digital colapsó — y dos fuentes independientes lo confirman</h3>
+        <p>El censo mide una caída de 20,6% a 4,5% en Riobamba (2010–2022). El Observatorio, con metodología distinta, mide una caída regional de 56% a 17% (2015–2025). Direcciones idénticas, fuentes y años distintos.</p>
+      </div>
+      <div class="finding">
+        <div class="fnum mono">SEÑAL 05</div>
+        <h3>La confianza económica de Riobamba es baja y volátil</h3>
+        <p>El Índice de Confianza del Consumidor de Riobamba osciló entre 35,7 y ~50 puntos en cuatro años, cerrando en 43,5 puntos en noviembre 2025 — por encima del nacional (38,2), pero lejos de un territorio de confianza sólida.</p>
+      </div>
+      <div class="finding">
+        <div class="fnum mono">SEÑAL 06</div>
+        <h3>Conectados, pero con expectativas empresariales apenas neutrales</h3>
+        <p>Riobamba alcanza altos niveles de uso de internet y celular (76,8% y 74,4% en 2024), pero su Índice de Expectativas Económicas global se mantiene apenas en el umbral neutral (50,15) — la conectividad no se traduce todavía en dinamismo empresarial percibido.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ============ ESTRUCTURA POBLACIONAL (CENSO) ============ -->
+<section id="estructura" data-source="censo">
+  <div class="wrap">
+    <span class="macro-tag censo">Censo INEC · VIII Censo de Población y VII de Vivienda 2022</span>
+    <div class="section-head">
+      <div><div class="tag">Quiénes son</div><h2>Estructura de la población</h2></div>
+      <div class="count mono">260,882 hab. · cantón Riobamba</div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="val">67,1%</div><div class="lbl">Población 15-64 años (2022)</div></div>
+      <div class="kpi"><div class="val">30 años</div><div class="lbl">Edad mediana 2022</div></div>
+      <div class="kpi"><div class="val">52,7%</div><div class="lbl">Son mujeres</div></div>
+      <div class="kpi"><div class="val">49</div><div class="lbl">Dependientes / 100 activos</div></div>
+      <div class="kpi"><div class="val">29,9%</div><div class="lbl">Se identifica indígena</div></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartEdad">
+        <div class="chead"><div><h3>Grandes grupos de edad, 2010 vs 2022</h3><span class="subhead">Censo · cantón completo</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartEdad"></canvas></div>
+        <div class="insight">La población en <strong>edad activa (15-64) creció 3,5 puntos</strong>, pero esto no es solo "más jóvenes" — incluye el envejecimiento de quienes ya estaban en ese rango. La base de la pirámide (niños) se redujo.</div>
+      </div>
+      <div class="chart-card" id="card-chartEtnia">
+        <div class="chead"><div><h3>Autoidentificación étnica, 2010 vs 2022</h3><span class="subhead">Censo · cantón completo</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartEtnia"></canvas></div>
+        <div class="insight">La población <strong>indígena pasó de 24,2% a 29,9%</strong> de 2010 a 2022 — un cambio que probablemente combina crecimiento demográfico real con cambios en cómo las personas se autoidentifican en el censo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRABAJO (CENSO) ============ -->
+<section id="trabajo" data-source="censo">
+  <div class="wrap">
+    <span class="macro-tag censo">Censo INEC 2022</span>
+    <div class="section-head">
+      <div><div class="tag">El problema #1 según los jóvenes</div><h2>Empleo y fuerza de trabajo</h2></div>
+      <span class="scope-note">RANGO REAL: 18-29 AÑOS (proxy de "joven trabajador")</span>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartOcupadosEdad">
+        <div class="chead"><div><h3>Población ocupada por grupo de edad</h3><span class="subhead">Censo 2022 · cantón completo</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartOcupadosEdad"></canvas></div>
+        <div class="insight">Los <strong>18-29 años son el 22,1%</strong> de toda la población ocupada — el segundo grupo más numeroso después de 30-44 años (39,3%).</div>
+      </div>
+      <div class="chart-card" id="card-chartDesocupadosEdad">
+        <div class="chead"><div><h3>Población desocupada por grupo de edad</h3><span class="subhead">Censo 2022 · cantón completo</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartDesocupadosEdad"></canvas></div>
+        <div class="insight"><strong>El 48% de todos los desocupados de Riobamba tiene entre 18 y 29 años</strong> — más que la suma de los otros tres grupos adultos juntos. Esta es la cifra que más respalda la señal #1 de la encuesta piloto.</div>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="margin-top:22px;">
+      <div class="chart-card" id="card-chartRama">
+        <div class="chead"><div><h3>Rama de actividad de la población ocupada</h3><span class="subhead">Censo 2022 · cantón completo</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartRama"></canvas></div>
+        <div class="insight">El <strong>70,4%</strong> de los empleos en Riobamba están en servicios y comercio. La industria/manufactura representa solo 7,8%.</div>
+      </div>
+      <div class="chart-card" id="card-chartAfiliacion">
+        <div class="chead"><div><h3>Afiliación a seguridad social</h3><span class="subhead">Censo 2022 · población ocupada</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartAfiliacion"></canvas></div>
+        <div class="insight">Solo <strong>1 de cada 2 personas ocupadas</strong> está afiliada a seguridad social — un dato clave para entender "empleo precario" más allá de solo "tener o no trabajo".</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDUCACIÓN (CENSO) ============ -->
+<section id="educacion" data-source="censo">
+  <div class="wrap">
+    <span class="macro-tag censo">Censo INEC 2022</span>
+    <div class="section-head">
+      <div><div class="tag">El camino hacia la edad activa</div><h2>Educación y brecha digital</h2></div>
+    </div>
+
+    <div class="decade-shift" style="max-width:600px; margin-bottom:8px;">
+      <div class="yr then"><div class="y mono">2010 · 15-17 años</div><div class="v">63,6%</div></div>
+      <div class="arrow">→</div>
+      <div class="yr now"><div class="y mono">2022 · 15-17 años</div><div class="v">81,1%</div></div>
+    </div>
+    <p class="mono" style="font-size:0.78rem; color:var(--bone-dim); margin-bottom:32px;">Asistencia neta a Bachillerato (BGU) — el mayor salto educativo de todo el diagnóstico censal</p>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartInstruccion">
+        <div class="chead"><div><h3>Nivel de instrucción, población de 24+ años</h3><span class="subhead">Censo 2022 vs 2010</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartInstruccion"></canvas></div>
+        <div class="insight">El nivel <strong>"Superior" pasó de 25,8% a 34,1%</strong> — más de 1 de cada 3 adultos en Riobamba ha cursado educación superior.</div>
+      </div>
+      <div class="chart-card" id="card-chartAnalfDigital">
+        <div class="chead"><div><h3>Analfabetismo digital (15-49 años)</h3><span class="subhead">Censo 2022 vs 2010</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartAnalfDigital"></canvas></div>
+        <div class="insight">Cayó de <strong>20,6% a 4,5%</strong> en 12 años. La brecha rural-urbana persiste (9,6% vs 2,3%). <a href="#card-chartDigitalEvol" class="insight-jump" data-target="card-chartDigitalEvol">Compárese con la tendencia regional del Observatorio →</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ VIVIENDA Y HOGAR (CENSO) ============ -->
+<section id="vivienda" data-source="censo">
+  <div class="wrap">
+    <span class="macro-tag censo">Censo INEC 2022</span>
+    <div class="section-head">
+      <div><div class="tag">El problema #2 según los jóvenes</div><h2>Vivienda y hogares</h2></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartTenencia">
+        <div class="chead"><div><h3>Tenencia de la vivienda, hogares</h3><span class="subhead">Censo 2022 vs 2010 · todos los hogares</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartTenencia"></canvas></div>
+        <div class="insight">La <strong>vivienda propia y pagada cayó de 56,8% a 48,6%</strong>. El 43,5% de los hogares ahora arrienda, paga hipoteca o vive en vivienda prestada.</div>
+      </div>
+      <div class="chart-card" id="card-chartTipoHogar">
+        <div class="chead"><div><h3>Composición de los hogares</h3><span class="subhead">Censo 2022 vs 2010 · todos los hogares</span></div><span class="scope-note src-tag">CENSO</span></div>
+        <div class="chart-box"><canvas id="chartTipoHogar"></canvas></div>
+        <div class="insight">Los <strong>hogares unipersonales crecieron de 14,6% a 19,3%</strong> — casi 1 de cada 5 hogares es de una sola persona.</div>
+      </div>
+    </div>
+
+    <table class="compare-table" style="margin-top:22px;">
+      <thead><tr><th>Indicador de vivienda</th><th>2010</th><th>2022</th><th>Cambio</th></tr></thead>
+      <tbody>
+        <tr><td class="label">Tamaño promedio del hogar</td><td class="v">3,6 personas</td><td class="hl">3,1 personas</td><td>↓ 0,5</td></tr>
+        <tr><td class="label">Déficit cuantitativo de vivienda</td><td class="v">15,5%</td><td class="hl">7,3%</td><td>↓ 8,2 pp</td></tr>
+        <tr><td class="label">Hacinamiento</td><td class="v">9,1%</td><td class="hl">3,8%</td><td>↓ 5,3 pp</td></tr>
+        <tr><td class="label">Acceso a agua por red pública</td><td class="v">75,8%</td><td class="hl">94,8%</td><td>↑ 19,0 pp</td></tr>
+        <tr><td class="label">Alcantarillado red pública</td><td class="v">70,6%</td><td class="hl">80,4%</td><td>↑ 9,8 pp</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">La calidad física de la vivienda <strong>mejoró en casi todos los indicadores</strong> — menos hacinamiento, más servicios. El problema que más creció no es la calidad, sino la <strong>tenencia</strong>: cada vez más hogares rentan en lugar de ser propietarios.</div>
+  </div>
+</section>
+<!-- ============ ENCUESTA: QUIÉNES RESPONDIERON ============ -->
+<section id="datos-encuesta" data-source="encuesta">
+  <div class="wrap">
+    <span class="macro-tag encuesta">Encuesta Piloto · "Jóvenes con Datos" · n=17</span>
+    <div class="section-head">
+      <div><div class="tag">Panorama general</div><h2>Quiénes respondieron</h2></div>
+      <div class="count mono">17 respuestas · 11 jun–18 jun 2026</div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="val">29.2</div><div class="lbl">Edad media (años)</div></div>
+      <div class="kpi"><div class="val">21–36</div><div class="lbl">Rango de edad</div></div>
+      <div class="kpi"><div class="val">59%</div><div class="lbl">Se identifican hombre</div></div>
+      <div class="kpi"><div class="val">59%</div><div class="lbl">Trabajan actualmente</div></div>
+      <div class="kpi"><div class="val">2.0/5</div><div class="lbl">Satisfacción serv. públicos</div></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartTiempo">
+        <div class="chead"><div><h3>Respuestas recibidas por día</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartTiempo"></canvas></div>
+        <div class="insight">El <strong>82% de las respuestas</strong> llegó en las primeras 48 horas; luego la participación cayó en picada. Sugiere que faltó un segundo impulso de recolección.</div>
+      </div>
+      <div class="chart-card" id="card-chartSector">
+        <div class="chead"><div><h3>Distribución por sector de Riobamba</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartSector"></canvas></div>
+        <div class="insight">Casi la mitad (<strong>8 de 17</strong>) vive en el sector Norte. La muestra está lejos de cubrir toda la ciudad de forma pareja.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ENCUESTA: PROBLEMAS ============ -->
+<section id="problemas" data-source="encuesta">
+  <div class="wrap">
+    <span class="macro-tag encuesta">Encuesta Piloto · n=17</span>
+    <div class="section-head">
+      <div><div class="tag">El núcleo del estudio</div><h2>Los problemas que enfrentan como jóvenes</h2></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartProb1">
+        <div class="chead"><div><h3>Problema prioritario #1</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartProb1"></canvas></div>
+        <div class="insight"><strong>Empleo (53%)</strong> e <strong>inseguridad (29%)</strong> concentran 8 de cada 10 respuestas. <a href="#card-chartDesocupadosEdad" class="insight-jump" data-target="card-chartDesocupadosEdad">Ver el respaldo censal de este hallazgo →</a></div>
+      </div>
+      <div class="chart-card" id="card-chartGeneroProb1">
+        <div class="chead"><div><h3>Problema #1 por género</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartGeneroProb1"></canvas></div>
+        <div class="insight">Empleo e inseguridad dominan tanto en hombres como en mujeres. La prueba chi-cuadrado (sección de estadística) <strong>no encuentra diferencia significativa</strong> entre géneros.</div>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="margin-top:22px;">
+      <div class="chart-card" id="card-chartHeatmap">
+        <div class="chead"><div><h3>Cruce: problema #1 × problema #2</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartHeatmap"></canvas></div>
+        <div class="insight">Empleo y vivienda <strong>coexisten en 5 de 9 personas</strong> que priorizaron empleo — sugiere que ambos problemas se viven juntos, no por separado.</div>
+      </div>
+      <div class="chart-card" id="card-chartParticipacion">
+        <div class="chead"><div><h3>Frecuencia de participación ciudadana</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartParticipacion"></canvas></div>
+        <div class="insight">7 de 17 participan "frecuentemente", pero 4 dicen "nunca" — la participación está polarizada, no distribuida de forma pareja.</div>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="margin-top:22px;">
+      <div class="chart-card" id="card-chartIntencion">
+        <div class="chead"><div><h3>Intención de quedarse en Riobamba</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="chart-box"><canvas id="chartIntencion"></canvas></div>
+        <div class="insight"><strong>10 de 17</strong> dicen "probablemente sí" — un compromiso tibio, no entusiasta. Solo 2 están totalmente seguros de quedarse.</div>
+      </div>
+      <div class="chart-card" id="card-chartScatter">
+        <div class="chead">
+          <div><h3>Edad × Acuerdo: "los jóvenes pueden cambiar Riobamba"</h3></div>
+          <span class="scope-note src-tag">ENCUESTA</span>
+        </div>
+        <div class="chart-toggle" style="margin-bottom:10px;">
+          <button class="toggle-btn active" data-scatter="acuerdo">Acuerdo de cambio</button>
+          <button class="toggle-btn" data-scatter="satisfaccion">Satisfacción servicios</button>
+        </div>
+        <div class="chart-box"><canvas id="chartScatter"></canvas></div>
+        <div class="insight">Sin correlación significativa con la edad (r=0.04, p=0.89) — la opinión sobre el cambio posible no depende de cuántos años tiene la persona.</div>
+      </div>
+    </div>
+
+    <div class="chart-grid single" style="margin-top:22px;">
+      <div class="chart-card" id="card-wordcloud">
+        <div class="chead"><div><h3>Si pudieras cambiar UNA cosa de Riobamba — términos más repetidos</h3></div><span class="scope-note src-tag">ENCUESTA</span></div>
+        <div class="wordcloud" id="wordcloud"></div>
+        <div class="insight">Con solo 13 respuestas de texto libre, ninguna palabra se repite más de 3 veces. Lo que sí se repite es el <strong>tema</strong>: gobierno local, planificación urbana y empleo, parafraseados de distintas formas.</div>
+      </div>
+    </div>
+
+    <div class="quotes" style="margin-top:22px;">
+      <div class="quote"><span class="quote-text">Cambiaría el enfoque del diseño de la ciudad... que sea adaptada a las personas, urbanismo táctico, infraestructura ciclista y peatonal de calidad</span></div>
+      <div class="quote"><span class="quote-text">Empleo que no sea por palancas sino por mérito</span></div>
+      <div class="quote"><span class="quote-text">Garantizar el acceso a la educación para todos de calidad y calidez... así se forjarán personas con pensamiento desarrollado y crítico</span></div>
+      <div class="quote"><span class="quote-text">Las organizaciones pseudo juveniles que funcionan como incubadora de politiqueros... dan vergüenza</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ENCUESTA: ESTADÍSTICA ============ -->
+<section id="estadistica" data-source="encuesta">
+  <div class="wrap">
+    <span class="macro-tag encuesta">Encuesta Piloto · n=17</span>
+    <div class="section-head">
+      <div><div class="tag">Rigor y límites</div><h2>Pruebas estadísticas — leer con cuidado</h2></div>
+    </div>
+
+    <div class="stats-note">
+      <strong>Por qué estas pruebas no deben citarse como evidencia concluyente:</strong> con n=17, ninguna prueba estadística clásica tiene poder suficiente para detectar efectos reales de forma confiable. Se incluyen por transparencia y como guía de qué investigar con una muestra más grande — no como hallazgos validados.
+    </div>
+
+    <table class="stat-table" style="margin-top:26px;">
+      <thead><tr><th>Prueba</th><th>Comparación</th><th>Estadístico</th><th>Valor p</th><th>Lectura</th></tr></thead>
+      <tbody>
+        <tr><td class="test-name">Chi-cuadrado</td><td>Género × Problema prioritario #1</td><td class="mono">χ²=3.79, gl=4</td><td class="mono">p=0.435</td><td><span class="sig-no">No significativo</span></td></tr>
+        <tr><td class="test-name">Chi-cuadrado</td><td>Ocupación × Problema prioritario #1</td><td class="mono">χ²=15.45, gl=12</td><td class="mono">p=0.218</td><td><span class="sig-no warn">No signif. · frec. esperadas &lt;1</span></td></tr>
+        <tr><td class="test-name">T-test</td><td>Edad: "Empleo" (n=9) vs "Inseguridad" (n=5)</td><td class="mono">t=0.26</td><td class="mono">p=0.800</td><td><span class="sig-no">No significativo</span></td></tr>
+        <tr><td class="test-name">Correlación Pearson</td><td>Edad ↔ Intención de quedarse</td><td class="mono">r=0.04</td><td class="mono">p=0.892</td><td><span class="sig-no">Sin correlación</span></td></tr>
+        <tr><td class="test-name">Correlación Pearson</td><td>Acuerdo cambio ↔ Intención de quedarse</td><td class="mono">r=0.16</td><td class="mono">p=0.533</td><td><span class="sig-no">Sin correlación</span></td></tr>
+        <tr><td class="test-name">Correlación Pearson</td><td>Satisfacción servicios ↔ Intención de quedarse</td><td class="mono">r=−0.12</td><td class="mono">p=0.658</td><td><span class="sig-no">Sin correlación</span></td></tr>
+        <tr><td class="test-name">T-test</td><td>Intención: menciona vivienda (n=7) vs no (n=10)</td><td class="mono">t=1.30</td><td class="mono">p=0.213</td><td><span class="sig-no">No significativo</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="stats-note" style="margin-top:22px; border-left-color:var(--paramo); background:rgba(91,140,123,0.06);">
+      <strong>Recomendación práctica:</strong> para que el chi-cuadrado y las correlaciones sean confiables (frecuencias esperadas ≥5 por celda), esta encuesta necesita al menos <strong>80–100 respuestas</strong> antes de usar sus resultados en una decisión de política pública.
+    </div>
+  </div>
+</section>
+<!-- ============ OBSERVATORIO: MADUREZ DIGITAL ============ -->
+<section id="imd" data-source="observatorio">
+  <div class="wrap">
+    <span class="macro-tag observatorio">Observatorio Económico UNACH · Boletín N°15 · feb. 2026</span>
+    <div class="section-head">
+      <div><div class="tag">Índice de Madurez Digital (IMD)</div><h2>¿Qué tan madura digitalmente es Riobamba?</h2></div>
+      <div class="count mono">Escala 0 a 1 · datos 2025</div>
+    </div>
+    <p style="color:var(--bone-dim); font-size:0.92rem; max-width:760px; margin-bottom:20px;">El IMD combina hasta 12 dimensiones (acceso, conectividad, habilidades, uso, seguridad, participación, etc.) en un solo índice de 0 a 1. El boletín reporta en detalle las 6 dimensiones de mejor y peor desempeño para Riobamba.</p>
+
+    <div class="city-selector-wrap" id="citySelector">
+      <span class="flabel">Comparar ciudades:</span>
+      <button class="city-pill active" data-city="Ambato" style="--city-color:#E8623C"><span class="cdot"></span>Ambato</button>
+      <button class="city-pill active" data-city="Riobamba" style="--city-color:#5B8C7B"><span class="cdot"></span>Riobamba</button>
+      <button class="city-pill active" data-city="Latacunga" style="--city-color:#D4AF6A"><span class="cdot"></span>Latacunga</button>
+      <button class="city-pill active" data-city="Milagro" style="--city-color:#7D9CB8"><span class="cdot"></span>Milagro</button>
+      <span class="city-selector-note">Afecta los gráficos comparativos de esta sección, Competitividad, Expectativas Económicas y Economía Digital ↓</span>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartIMDRiobamba">
+        <div class="chead"><div><h3>Dimensiones del IMD para Riobamba (2025)</h3><span class="subhead">6 de 12 dimensiones reportadas — mejores y peores</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartIMDRiobamba"></canvas></div>
+        <div class="insight">Los mejores desempeños están en <strong>acceso (0,63), habilidades digitales (0,61) y conectividad (0,60)</strong>. Los más bajos: participación y ciudadanía digital (0,52), satisfacción con servicios municipales (0,53) y uso de servicios digitales (0,54). <a href="#card-chartProb1" class="insight-jump" data-target="card-chartProb1">Comparar con la satisfacción medida en la encuesta piloto →</a></div>
+      </div>
+      <div class="chart-card" id="card-chartIMD4Ciudades">
+        <div class="chead"><div><h3>IMD global, 4 ciudades de la Zona 3 (2025)</h3><span class="subhead">Madurez moderada en las 4 ciudades</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartIMD4Ciudades"></canvas></div>
+        <div class="insight">Ambato lidera con 0,59. Milagro y Riobamba están prácticamente empatadas alrededor de 0,56. Las 4 ciudades caen en el rango "madurez moderada" (0,41–0,60) — ninguna alcanza "alto grado de madurez".</div>
+      </div>
+    </div>
+    <div class="callout info">
+      <strong>Lo que el boletín no detalla numéricamente:</strong> el desglose de las 12 dimensiones por cada una de las 4 ciudades (Gráfico 3) se describe solo de forma narrativa ("Ambato y Milagro lideran en acceso, con 0,79 y 0,77"; "Milagro y Latacunga tienen los valores más bajos, con 0,44 y 0,48 en uso de servicios, participación y uso laboral"). No se grafica aquí para evitar atribuir cifras a dimensiones o ciudades de forma imprecisa.
+    </div>
+  </div>
+</section>
+
+<!-- ============ OBSERVATORIO: COMPETITIVIDAD ============ -->
+<section id="ict" data-source="observatorio">
+  <div class="wrap">
+    <span class="macro-tag observatorio">Observatorio Económico UNACH</span>
+    <div class="section-head">
+      <div><div class="tag">Índice de Competitividad Territorial (ICT)</div><h2>Las 5 dimensiones de competitividad, ciudad por ciudad</h2></div>
+      <div class="count mono">Escala 0 a 1 · 2024</div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="val">0,621</div><div class="lbl">ICT Riobamba 2024</div></div>
+      <div class="kpi"><div class="val">0,66</div><div class="lbl">ICT Ambato (el más alto)</div></div>
+      <div class="kpi"><div class="val">0,59</div><div class="lbl">ICT Milagro (el más bajo)</div></div>
+      <div class="kpi"><div class="val">0,90</div><div class="lbl">Riobamba en Ambiental (su mejor componente)</div></div>
+      <div class="kpi"><div class="val">0,22</div><div class="lbl">Riobamba en Infraestructura (su peor componente)</div></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartICTComponentes">
+        <div class="chead"><div><h3>Los 5 componentes del ICT, por ciudad (2024)</h3><span class="subhead">Ambiental · Institucional · Sociodemográfico · Económico-empresarial · Infraestructura</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartICTComponentes"></canvas></div>
+        <div class="insight">Riobamba <strong>lidera en sociodemográfico (0,87)</strong> entre las 4 ciudades, pero su <strong>infraestructura (0,22) es la segunda más baja</strong>. El patrón se repite en las 4 ciudades: fuerte en lo social/ambiental, débil en infraestructura y economía empresarial.</div>
+      </div>
+      <div class="chart-card" id="card-chartICT4Ciudades">
+        <div class="chead"><div><h3>ICT global, 4 ciudades (2024)</h3></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartICT4Ciudades"></canvas></div>
+        <div class="insight">Riobamba ocupa el <strong>segundo lugar (0,62)</strong>, por debajo de Ambato (0,66) y por encima de Latacunga (0,60) y Milagro (0,59, el más bajo).</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>Evolución temporal — solo datos parciales disponibles:</strong> el boletín confirma que el ICT de Riobamba subió de <strong>0,60 (2021) a 0,62 (2024)</strong> — un incremento de apenas 0,02 puntos en 4 años. Para Ambato, Latacunga y Milagro, el boletín describe la tendencia de forma narrativa (mejoras en componentes económico e institucional para Ambato; trayectoria irregular para Latacunga; Milagro solo se incorporó al análisis en 2024) pero no reporta series año por año completas, por lo que no se grafican aquí para evitar inventar puntos intermedios.
+    </div>
+  </div>
+</section>
+
+<!-- ============ OBSERVATORIO: PRECIOS AL CONSUMIDOR ============ -->
+<section id="ipc" data-source="observatorio">
+  <div class="wrap">
+    <span class="macro-tag observatorio">Observatorio Económico UNACH</span>
+    <div class="section-head">
+      <div><div class="tag">Índice de Precios al Consumidor (IPC) local</div><h2>¿Cuánto subieron los precios en 8 semanas?</h2></div>
+      <div class="count mono">1 nov – 20 dic 2025 · 90 productos</div>
+    </div>
+    <p style="color:var(--bone-dim); font-size:0.92rem; max-width:780px; margin-bottom:28px;">Como Riobamba y Latacunga no están en la muestra nacional del IPC del INEC, el Observatorio construyó un índice local propio (metodología Laspeyres) con precios semanales de alimentos y bebidas no alcohólicas recolectados en mercados y supermercados de ambas ciudades.</p>
+
+    <div class="kpis">
+      <div class="kpi"><div class="val">0,52%</div><div class="lbl">Inflación Riobamba, noviembre</div></div>
+      <div class="kpi"><div class="val">+0,88%</div><div class="lbl">Pico Riobamba, semana 22-nov</div></div>
+      <div class="kpi"><div class="val">1,22%</div><div class="lbl">Inflación Riobamba, diciembre</div></div>
+      <div class="kpi"><div class="val">1,04%</div><div class="lbl">Inflación Latacunga, noviembre</div></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartIPCCategoria">
+        <div class="chead"><div><h3>Variación promedio por categoría de alimento</h3><span class="subhead">Alimentos vs. bebidas no alcohólicas</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartIPCCategoria"></canvas></div>
+        <div class="insight">En <strong>bebidas no alcohólicas</strong>, las dos ciudades van en direcciones opuestas: Riobamba sube 0,60% mientras Latacunga <strong>cae −1,28%</strong>. En alimentos, ambas suben de forma similar (0,86–0,93%).</div>
+      </div>
+      <div class="chart-card" id="card-chartIPCDestacados">
+        <div class="chead"><div><h3>Productos con mayor variación (puntos del índice)</h3><span class="subhead">Valores destacados mencionados en el boletín</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartIPCDestacados"></canvas></div>
+        <div class="insight">En Latacunga, los "alimenticios no específicos" llegan a <strong>104,14 puntos</strong>. En Riobamba, las carnes suben a 101,79 mientras leche/queso/huevos bajan a 99,87 — el único grupo que se abarata.</div>
+        <div class="approx-note">ⓘ El boletín incluye una tabla completa de 9 categorías × 2 ciudades (Gráfico 12), pero el documento disponible no permite reconstruirla con precisión total. Aquí se muestran únicamente los 4 valores que el texto confirma de forma explícita.</div>
+      </div>
+    </div>
+    <div class="callout warn">
+      <strong>Nota de transparencia:</strong> el boletín también incluye un gráfico de evolución semanal completo del IPC (Gráfico 10, 8 semanas × 2 ciudades). La calidad de extracción del PDF disponible no permitió reconstruir esos valores semana por semana con la confianza necesaria — se recomienda consultar el documento original para ese detalle.
+    </div>
+  </div>
+</section>
+
+<!-- ============ OBSERVATORIO: CONFIANZA DEL CONSUMIDOR ============ -->
+<section id="icc" data-source="observatorio">
+  <div class="wrap">
+    <span class="macro-tag observatorio">Observatorio Económico UNACH</span>
+    <div class="section-head">
+      <div><div class="tag">Índice de Confianza del Consumidor (ICC)</div><h2>El optimismo económico de los hogares, en el tiempo</h2></div>
+      <div class="count mono">Escala 0–100 · jun 2021 – nov 2025</div>
+    </div>
+
+    <div class="chart-grid single">
+      <div class="chart-card" id="card-chartICCEvolucion">
+        <div class="chead"><div><h3>Evolución del ICC — Riobamba vs. Nacional urbano</h3><span class="subhead">0=empeora · 50=igual · 100=mejora</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartICCEvolucion"></canvas></div>
+        <div class="insight">Riobamba tocó su <strong>mínimo en junio 2022 (35,69)</strong> y se recupera de forma irregular hasta <strong>43,54 en noviembre 2025</strong> — por encima del nacional urbano (38,17) en el cierre de la serie.</div>
+        <div class="approx-note">ⓘ Los puntos de jun-2021 y nov-2023 se muestran con su valor entero confirmado por el texto (46 y 50), pero el decimal exacto no es legible en el documento fuente — están marcados como aproximados en el gráfico.</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <strong>Lo que el boletín dice por categoría (texto, sin tabla reconstruible):</strong> en las 3 ciudades, "alimentos" es la categoría mejor valorada en situación presente. En Latacunga y Milagro, las expectativas futuras de la categoría "hogar" superan a su situación presente; en Riobamba, ese optimismo se mantiene en la categoría "alimentos". La tabla numérica completa (Tabla 3, 5 categorías × 3 ciudades × 2 momentos) no se reconstruye aquí por la misma razón de calidad de extracción explicada en la sección de IPC.
+    </div>
+  </div>
+</section>
+
+<!-- ============ OBSERVATORIO: EXPECTATIVAS ECONÓMICAS ============ -->
+<section id="iee" data-source="observatorio">
+  <div class="wrap">
+    <span class="macro-tag observatorio">Observatorio Económico UNACH</span>
+    <div class="section-head">
+      <div><div class="tag">Índice de Expectativas de la Economía (IEE)</div><h2>Lo que esperan las empresas, sector por sector</h2></div>
+      <div class="count mono">Escala 0–100 · noviembre 2025</div>
+    </div>
+    <p style="color:var(--bone-dim); font-size:0.92rem; max-width:760px; margin-bottom:28px;">Por debajo de 50 puntos = "umbral pesimista" (menor confianza). Por encima de 50 = "umbral optimista" (mayor confianza). En 50 = se mantiene la confianza.</p>
+
+    <div class="chart-grid">
+      <div class="chart-card" id="card-chartIEESectorial">
+        <div class="chead"><div><h3>IEE sectorial, 4 ciudades (nov. 2025)</h3><span class="subhead">Servicios · Comercio · Industria · Construcción</span></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartIEESectorial"></canvas></div>
+        <div class="insight"><strong>Latacunga es la única ciudad con un sector claramente optimista</strong>: comercio (77,32) y construcción (~64). Su sector servicios, en cambio, es pesimista (42,58) — el valor más bajo de toda la tabla.</div>
+        <div class="approx-note">ⓘ El valor de "Construcción" para Latacunga aparece en el boletín como "64," sin el decimal final visible — se muestra como aproximado.</div>
+      </div>
+      <div class="chart-card" id="card-chartIEEGlobal">
+        <div class="chead"><div><h3>IEE global, 4 ciudades (nov. 2025)</h3></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartIEEGlobal"></canvas></div>
+        <div class="insight">Latacunga es la única en <strong>umbral optimista (52,57)</strong>. Ambato, Milagro y Riobamba se mantienen prácticamente neutrales, entre 50,10 y 50,36.</div>
+      </div>
+    </div>
+    <div class="callout warn">
+      <strong>Evolución 2023–2025:</strong> el boletín describe que Ambato se mantiene estable cerca de 50 puntos en todo el período; Latacunga es optimista casi siempre, excepto en noviembre 2024 (40,61 puntos, su único umbral pesimista); Riobamba pasó de pesimista en jul-2023 a optimista en feb/jun-2024, estabilizándose cerca del umbral neutral desde nov-2024. No se grafica una serie completa porque el boletín no reporta el valor numérico de cada ciudad en cada uno de los 5 períodos.
+    </div>
+  </div>
+</section>
+
+<!-- ============ OBSERVATORIO: ECONOMÍA DIGITAL ============ -->
+<section id="economia-digital" data-source="observatorio">
+  <div class="wrap">
+    <span class="macro-tag observatorio">Observatorio Económico UNACH · con datos INEC 2025</span>
+    <div class="section-head">
+      <div><div class="tag">Variables de economía digital</div><h2>Una década de conectividad en 3 ciudades</h2></div>
+      <div class="count mono">2015–2024 · Ambato, Latacunga, Riobamba</div>
+    </div>
+
+    <div class="chart-grid single">
+      <div class="chart-card" id="card-chartDigitalEvol">
+        <div class="chead">
+          <div><h3>Evolución de conectividad, 2015–2024</h3><span class="subhead" id="digitalSubhead">Personas que usan internet (%)</span></div>
+          <span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span>
+        </div>
+        <div class="chart-toggle" style="margin-bottom:6px;">
+          <button class="toggle-btn" data-digital="hogares">Hogares con internet</button>
+          <button class="toggle-btn active" data-digital="personas">Personas que usan internet</button>
+          <button class="toggle-btn" data-digital="celular">Celular activado</button>
+        </div>
+        <div class="chart-box"><canvas id="chartDigitalEvol"></canvas></div>
+        <div class="slider-control">
+          <div class="srow">
+            <span class="slabel">Año final:</span>
+            <input type="range" id="yearSlider" min="2015" max="2024" value="2024" step="1">
+            <span class="syear mono" id="yearSliderVal">2024</span>
+          </div>
+        </div>
+        <div class="insight" id="digitalInsight">El uso de internet en Riobamba pasó de <strong>40,5% (2015) a 76,8% (2024)</strong> — la ciudad con el crecimiento porcentual más alto de las tres, aunque sigue por debajo de Ambato (86,2%) y Latacunga (80,4%).</div>
+      </div>
+    </div>
+
+    <div class="chart-grid" style="margin-top:22px;">
+      <div class="chart-card">
+        <div class="chead"><div><h3>Smartphone — referencia 2018 vs. 2025</h3></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartSmartphone"></canvas></div>
+        <div class="insight">En 2018 las 3 ciudades promediaban ~68%. Para 2025, <strong>Riobamba alcanza el 100%</strong> de cobertura de teléfono inteligente — la única cifra completa que reporta el boletín para esta variable.</div>
+      </div>
+      <div class="chart-card" id="card-chartBandaAncha">
+        <div class="chead"><div><h3>Banda ancha fija — 2020 vs. 2025</h3></div><span class="scope-note src-tag" style="color:var(--violet); border-color:rgba(155,138,196,0.4); background:rgba(155,138,196,0.1);">OBSERVATORIO</span></div>
+        <div class="chart-box"><canvas id="chartBandaAncha"></canvas></div>
+        <div class="insight">Riobamba <strong>cae de 45,1% a 32,8%</strong> — no por menos conectividad, sino porque la población migró hacia tecnologías inalámbricas (celular/datos móviles) en lugar de banda ancha fija.</div>
+      </div>
+    </div>
+
+    <div class="callout gold" style="margin-top:24px;">
+      <strong>Triangulación con el censo:</strong> el analfabetismo digital regional (promedio 3 ciudades) cayó de <strong>56% (2015) a 17% (2025)</strong> según el Observatorio. De forma totalmente independiente, el censo INEC midió una caída de <strong>20,6% a 4,5% (2010–2022) específicamente en Riobamba</strong>. Metodologías, años y alcances distintos — misma conclusión: la brecha de habilidades digitales básicas se cerró mucho más rápido que casi cualquier otra brecha social medida en este dashboard. <a href="#card-chartAnalfDigital" class="insight-jump" data-target="card-chartAnalfDigital">Ver el dato censal →</a>
+    </div>
+  </div>
+</section>
+<!-- ============ PUENTE TRIPLE FUENTE ============ -->
+<section id="puente" data-source="todos">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="tag">Contraste entre las tres fuentes</div><h2>¿Qué tan bien encajan 17 jóvenes, 260,882 censados y 4 índices económicos?</h2></div>
+    </div>
+
+    <div class="bridge-box">
+      <h3>Las tres fuentes señalan en la misma dirección en los problemas centrales</h3>
+      <p>Tamaños de muestra radicalmente distintos (17, 260.882, y datos agregados de 4 ciudades), pero coinciden en empleo, vivienda/infraestructura y participación digital.</p>
+      <div class="triplet">
+        <div>
+          <div class="src mono">ENCUESTA PILOTO (n=17)</div>
+          <div class="stat">9 de 17</div>
+          <div class="desc">señalan "falta de empleo" como su problema #1</div>
+        </div>
+        <div>
+          <div class="src mono">CENSO INEC (n=260,882)</div>
+          <div class="stat">48%</div>
+          <div class="desc">de todos los desocupados del cantón tiene 18-29 años</div>
+        </div>
+        <div>
+          <div class="src mono">OBSERVATORIO (4 ciudades)</div>
+          <div class="stat">50,15</div>
+          <div class="desc">IEE global Riobamba — apenas neutral, sin dinamismo empresarial fuerte</div>
+        </div>
+        <div>
+          <div class="src mono">ENCUESTA PILOTO (n=17)</div>
+          <div class="stat">7 de 17</div>
+          <div class="desc">mencionan vivienda/costo de vida como problema secundario</div>
+        </div>
+        <div>
+          <div class="src mono">CENSO INEC (n=260,882)</div>
+          <div class="stat">43,5%</div>
+          <div class="desc">de los hogares ya no es propietario — arrienda o vive prestado</div>
+        </div>
+        <div>
+          <div class="src mono">OBSERVATORIO (4 ciudades)</div>
+          <div class="stat">0,22</div>
+          <div class="desc">componente Infraestructura del ICT Riobamba — el segundo más bajo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:26px;">
+      <strong>Lo que ninguna de las tres fuentes puede confirmar del todo:</strong> la inseguridad como problema percibido (señal #2 de la encuesta piloto) no aparece como indicador ni en el censo de población ni en los índices del Observatorio Económico — ninguno de los dos mide percepción de seguridad ciudadana directamente. Para esa señal específica seguiría haciendo falta una encuesta de victimización/percepción con muestra mucho mayor a 17 personas.
+    </div>
+  </div>
+</section>
+
+<!-- ============ SECCIÓN 2: INSIGHTS PEDAGÓGICOS ============ -->
+<section id="insights" data-source="todos">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="tag">Sección 2 · Análisis de insights clave</div><h2>8 hallazgos que cruzan las tres fuentes — explicados para dos audiencias</h2></div>
+    </div>
+    <p style="color:var(--bone-dim); font-size:0.92rem; max-width:780px; margin-bottom:36px;">Cada tarjeta tiene una lectura para quien está aprendiendo a interpretar datos, y una lectura para quien debe decidir algo con ellos. Haz clic en "Ver gráfico" para saltar a la visualización correspondiente — se resaltará brevemente.</p>
+
+    <div class="insights-grid">
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 01</div>
+        <h3>El desempleo juvenil no es una percepción — el censo lo confirma con un número exacto</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>Cuando una encuesta pequeña (n=17) y un censo completo (n=260,882) señalan lo mismo, decimos que hay <em>convergencia</em> o <em>triangulación</em> de fuentes. Eso no hace que la encuesta piloto sea representativa — sigue sin serlo — pero sí sube la confianza en que el problema que detectó es real y no producto del azar de una muestra pequeña.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>El 48% de desocupados concentrado en 18-29 años justifica diseñar políticas de empleo segmentadas por edad, no genéricas. Un programa de empleo "para todos" diluye el impacto donde más se necesita.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge censo" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Censo</span>
+          <span class="src-badge encuesta" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Encuesta</span>
+        </div>
+        <button class="insight-link" data-target="card-chartDesocupadosEdad">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 02</div>
+        <h3>La participación ciudadana digital es el punto más débil — medido dos veces, de forma independiente</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>El IMD (índice institucional) y la encuesta piloto (percepción ciudadana directa) usan metodologías completamente distintas. Que ambos apunten al mismo punto débil —la relación entre el ciudadano y los servicios digitales municipales— es una señal mucho más fuerte que si solo lo dijera una persona en una entrevista.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>Antes de invertir en más infraestructura de acceso (que ya está relativamente bien, 0,63), priorizar inversión en plataformas de participación ciudadana y mejora de servicios digitales municipales tendría mayor retorno marginal.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge observatorio" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Observatorio</span>
+          <span class="src-badge encuesta" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Encuesta</span>
+        </div>
+        <button class="insight-link" data-target="card-chartIMDRiobamba">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 03</div>
+        <h3>Infraestructura es la debilidad estructural que comparten las 4 ciudades de la Zona 3</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>Fíjense que el componente de Infraestructura tiene el valor más bajo del ICT en las 4 ciudades sin excepción (0,20–0,28). Cuando un patrón se repite igual en territorios distintos, es más probable que sea un problema estructural regional, no una particularidad de una sola ciudad.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>Esto sugiere que la solución no es exclusivamente municipal — un abordaje a nivel de Zona 3 (provincial/regional) en infraestructura financiera, educativa y tecnológica podría tener más impacto que iniciativas aisladas por cantón.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge observatorio" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Observatorio</span>
+        </div>
+        <button class="insight-link" data-target="card-chartICTComponentes">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 04</div>
+        <h3>El analfabetismo digital se cerró más rápido que cualquier otra brecha social — y dos fuentes distintas lo confirman</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>El censo mide Riobamba específicamente (20,6%→4,5%, 2010-2022). El Observatorio mide un promedio regional con otra ventana de tiempo (56%→17%, 2015-2025). No son comparables cifra a cifra, pero la <em>dirección y velocidad</em> del cambio es la lección: ninguna otra brecha en este dashboard (vivienda, empleo, infraestructura) se cerró tan rápido.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>Las políticas de alfabetización digital básica ya cumplieron su ciclo de mayor impacto. El siguiente cuello de botella no es "saber usar" la tecnología, sino qué tan bien se traduce ese conocimiento en participación y uso productivo — donde el IMD sigue mostrando rezagos.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge censo" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Censo</span>
+          <span class="src-badge observatorio" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Observatorio</span>
+        </div>
+        <button class="insight-link" data-target="card-chartDigitalEvol">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 05</div>
+        <h3>Casi 1 de cada 2 personas ocupadas en Riobamba trabaja sin seguridad social</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>"Tener empleo" y "tener empleo protegido" son dos cosas distintas. El censo separa ambas: solo 49,8% de quienes trabajan están afiliados a seguridad social. Esto es un ejemplo de por qué hay que mirar más de un indicador antes de afirmar que el mercado laboral de una ciudad "está bien".</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>Programas de formalización laboral dirigidos a independientes y trabajadores por cuenta propia (35,2% de los ocupados) podrían tener más impacto en calidad de vida que programas centrados solo en "generar empleo" sin atender su calidad.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge censo" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Censo</span>
+        </div>
+        <button class="insight-link" data-target="card-chartAfiliacion">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 06</div>
+        <h3>Riobamba lidera en smartphone (100%) pero retrocede en banda ancha fija — la conectividad cambió de forma, no de tamaño</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>Un indicador que baja no siempre significa "peor". La caída de banda ancha fija (45,1%→32,8%) ocurre justo cuando el smartphone llega al 100% — la gente se mudó de una tecnología a otra, no perdió acceso. Siempre hay que preguntar "¿qué otra variable cambió al mismo tiempo?" antes de interpretar una caída como una mala noticia.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>Las inversiones públicas en conectividad deberían reorientarse hacia calidad y costo de datos móviles, no hacia expandir banda ancha fija tradicional, que ya no es la tecnología de adopción dominante en el territorio.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge observatorio" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Observatorio</span>
+        </div>
+        <button class="insight-link" data-target="card-chartBandaAncha">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 07</div>
+        <h3>La confianza del consumidor en Riobamba es más alta que el promedio nacional, pero también más volátil</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>Comparar solo el último valor (43,54 vs 38,17 nacional) podría hacer pensar que Riobamba está "mejor". Pero mirando toda la serie, Riobamba también tuvo el punto más bajo de los últimos años (35,69 en 2022) — es una economía local con más altibajos, no necesariamente más sólida.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>La volatilidad del ICC sugiere que la economía de los hogares riobambeños es más sensible a shocks locales (cosechas, eventos puntuales, ferias) que la economía urbana nacional en su conjunto — relevante para el momento en que se diseñen campañas de consumo local o incentivos comerciales.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge observatorio" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Observatorio</span>
+        </div>
+        <button class="insight-link" data-target="card-chartICCEvolucion">Ver gráfico relacionado ↓</button>
+      </div>
+
+      <div class="insight-card">
+        <div class="inum mono">INSIGHT 08</div>
+        <h3>Con n=17, ni el género ni la ocupación explican estadísticamente las prioridades — y eso también es información útil</h3>
+        <div class="audience-block">
+          <span class="alabel">Para estudiantes</span>
+          <p>"No significativo" no significa "no hay diferencia" — significa que con esta muestra tan pequeña no se puede afirmar ni lo uno ni lo otro con confianza. Es una de las confusiones más comunes al leer estadística, y por eso este dashboard documenta los valores p en vez de ocultarlos.</p>
+        </div>
+        <div class="audience-block pro">
+          <span class="alabel">Para la toma de decisiones</span>
+          <p>No diseñar políticas diferenciadas por género basándose en esta encuesta piloto — los datos disponibles no lo respaldan. Sí vale la pena ampliar la muestra a 80-100 respuestas antes de tomar cualquier decisión segmentada.</p>
+        </div>
+        <div class="sources-used">
+          <span class="src-badge encuesta" style="font-size:0.62rem; padding:5px 10px;"><span class="dot"></span>Encuesta</span>
+        </div>
+        <button class="insight-link" data-target="card-chartGeneroProb1">Ver gráfico relacionado ↓</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ LAYOUT PROPUESTO (heredado, actualizado) ============ -->
+<section id="layout" data-source="todos">
+  <div class="wrap">
+    <div class="section-head">
+      <div><div class="tag">Para la siguiente ronda</div><h2>Cómo seguir creciendo este dashboard</h2></div>
+    </div>
+
+    <div class="layout-diagram mono">┌─────────────────────────────────────────────────────────────┐
+│ <span class="hl">HERO</span>: 3 fuentes + filtro + 1 frase clave de cada estudio       │
+├──────────────────────────────┬────────────────────────────────┤
+│ <span class="hl2">CENSO</span>: estructura, trabajo,           │ <span class="hl">ENCUESTA</span>: problemas, estadística    │
+│ educación, vivienda (10 charts)│ piloto (9 elementos)            │
+├──────────────────────────────┴────────────────────────────────┤
+│ <span class="hl3">OBSERVATORIO</span>: IMD · ICT · IPC · ICC · IEE · economía digital  │
+│ (11 elementos, con notas de transparencia donde faltan datos) │
+├──────────────────────────────┴────────────────────────────────┤
+│ <span class="hl3">PUENTE TRIPLE</span> + <span class="hl">8 INSIGHTS</span> pedagógicos enlazados a gráficos    │
+└─────────────────────────────────────────────────────────────┘</div>
+
+    <div class="stats-note" style="margin-top:26px;">
+      <strong>Recomendación práctica:</strong> la próxima ronda de la encuesta piloto necesita 80–100 respuestas para que sus pruebas estadísticas sean confiables. El Observatorio Económico publica boletines trimestrales — vale la pena automatizar la actualización de IMD, ICT, IPC, ICC e IEE cuando salga el Boletín N°16.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>RIOBAMBA INTEGRAL · CENSO INEC (VIII Censo de Población y VII de Vivienda 2022) · ENCUESTA PILOTO "JÓVENES CON DATOS" (n=17, jun 2026) · OBSERVATORIO ECONÓMICO UNACH (BOLETÍN N°15, FEB 2026)<br>
+    LOS HALLAZGOS DE LA ENCUESTA PILOTO SON EXPLORATORIOS, NO REPRESENTATIVOS · ALGUNOS VALORES DEL OBSERVATORIO SE MARCAN COMO APROXIMADOS POR LIMITACIONES DE EXTRACCIÓN DEL DOCUMENTO FUENTE</p>
+  </div>
+</footer>
+<script>
+// ════════════════════════════════════════════════════════════
+// DATOS — FUENTE 1: CENSO INEC 2022 (reutilizado del archivo original)
+// ════════════════════════════════════════════════════════════
+const D = {
+  "fuente": "INEC - VIII Censo de Población y VII de Vivienda 2022, Diagnóstico Cantón Riobamba",
+  "edicion": "Primera edición, mayo 2026",
+  "poblacion_total": {
+    "riobamba_2022": 260882, "riobamba_2010": 226769, "riobamba_2001": 193793,
+    "chimborazo_2022": 471933, "riobamba_pct_provincia": 55.3,
+    "tasa_crecimiento_2010_2022": 1.2, "tasa_crecimiento_2001_2010": 1.7,
+    "pct_urbano_2022": 67.9, "pct_urbano_2010": 66.0, "pct_rural_2022": 32.1
+  },
+  "estructura_edad": {
+    "pct_0_14_2022": 22.6, "pct_15_64_2022": 67.1, "pct_65mas_2022": 10.3,
+    "pct_0_14_2010": 28.4, "pct_15_64_2010": 63.6, "pct_65mas_2010": 8.0,
+    "cambio_0_14_pp": -5.8, "cambio_15_64_pp": 3.5, "cambio_65mas_pp": 2.3,
+    "edad_media_2022": 33.3, "edad_mediana_2022": 30.0, "edad_media_2010": 29.7, "edad_mediana_2010": 25.0,
+    "relacion_dependencia_2022": 49, "relacion_dependencia_2010": 58,
+    "dependientes_menores_2022": 34, "dependientes_mayores_2022": 15
+  },
+  "sexo": { "mujeres_2022": 137394, "hombres_2022": 123488, "pct_mujeres": 52.7, "pct_hombres": 47.3 },
+  "etnia_2022": {
+    "mestizo": {"pct": 68.3}, "indigena": {"pct": 29.9}, "blanco": {"pct": 1.0},
+    "afroecuatoriano": {"pct": 0.6}, "montubio": {"pct": 0.2}
+  },
+  "trabajo_2022": {
+    "poblacion_edad_trabajar_pct": 77.4, "fuerza_trabajo_total": 125218,
+    "ocupados_total": 111622, "desocupados_total": 13596,
+    "ocupados_por_edad": { "15_17": 0.5, "18_29": 22.1, "30_44": 39.3, "45_64": 32.4, "65mas": 5.7 },
+    "desocupados_por_edad": { "15_17": 2.5, "18_29": 48.0, "30_44": 28.8, "45_64": 17.5, "65mas": 3.3 },
+    "rama_actividad_ocupados": { "Servicios": 50.0, "Comercio": 20.4, "Agricultura y minas": 9.8, "Manufactura": 7.8, "Construcción": 5.5 },
+    "situacion_ocupacion": {"dependientes": 61.7, "independientes": 35.2, "no_remunerados": 2.0},
+    "afiliacion_seguridad_social_pct": 49.8
+  },
+  "educacion": {
+    "asistencia_bgu_2022": 81.1, "asistencia_bgu_2010": 63.6,
+    "nivel_instruccion_24mas_2022": { "Ninguno": 5.6, "Alfabetización": 1.1, "EGB": 26.9, "Bachillerato": 24.2, "Postbachillerato": 0.6, "Superior": 34.1, "Posgrado": 7.4 },
+    "nivel_instruccion_24mas_2010": { "Ninguno": 10.7, "Alfabetización": 1.8, "EGB": 36.6, "Bachillerato": 17.9, "Postbachillerato": 1.0, "Superior": 25.8, "Posgrado": 3.5 },
+    "analfabetismo_digital_15_49_2022": 4.5, "analfabetismo_digital_15_49_2010": 20.6,
+    "analfabetismo_digital_urbano_2022": 2.3, "analfabetismo_digital_rural_2022": 9.6,
+    "analfabetismo_digital_hombres_2022": 3.4, "analfabetismo_digital_mujeres_2022": 5.5
+  },
+  "pobreza_nbi": { "pct_pobreza_nbi_2022": 25.3, "pct_pobreza_nbi_2010": 46.7 },
+  "vivienda": {
+    "tenencia_vivienda_hogares_2022": { "Propia y pagada": 48.6, "Propia y pagándola": 7.9, "Arrendada/anticresis": 29.4, "Prestada o por servicios": 14.1 },
+    "tenencia_vivienda_hogares_2010": { "Propia y pagada": 56.8, "Propia y pagándola": 6.7, "Arrendada/anticresis": 25.0, "Prestada o por servicios": 11.5 },
+    "pct_hogares_alquiler_o_prestada_2022": 43.5
+  },
+  "hogares": {
+    "tamano_promedio_2022": 3.1, "tamano_promedio_2010": 3.6,
+    "tipo_hogar_2022": { "Nuclear": 59.9, "Extenso": 14.4, "Unipersonal": 19.3, "Sin núcleo": 5.5, "Compuesto": 0.8 },
+    "tipo_hogar_2010": { "Nuclear": 56.5, "Extenso": 21.2, "Unipersonal": 14.6, "Sin núcleo": 5.6, "Compuesto": 2.0 }
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// DATOS — FUENTE 2: ENCUESTA PILOTO n=17 (reutilizado del archivo original)
+// ════════════════════════════════════════════════════════════
+const DATA = {
+  "n": 17,
+  "genero": { "Hombre": 10, "Mujer": 7 },
+  "ocupacion": { "Trabajo": 10, "Estudiante": 4, "Estudio y trabajo": 2, "Ninguno actualmente": 1 },
+  "sector_macro": { "Norte": 8, "Centro-Sur / Otros": 4, "Centro": 2, "Bellavista": 1, "Sur (Las Acacias)": 1, "Periferia (Quimiag)": 1 },
+  "prob1": { "Falta de empleo / oportunidades laborales": 9, "Inseguridad": 5, "No especifica": 1, "Transporte público deficiente": 1, "Acceso a educación de calidad": 1 },
+  "frecuencia_part": { "Frecuentemente": 7, "Nunca": 4, "Raramente": 3, "A veces": 3 },
+  "intencion_simple": { "Probablemente sí": 10, "No, quiere irse": 3, "Sí, definitivamente": 2, "Probablemente no": 2 },
+  "respuestas_por_dia": { "2026-06-11": 4, "2026-06-12": 10, "2026-06-13": 1, "2026-06-15": 1, "2026-06-18": 1 },
+  "scatter_edad_acuerdo": [
+    {"edad":24.0,"acuerdo_cambio":3},{"edad":31.0,"acuerdo_cambio":5},{"edad":34.0,"acuerdo_cambio":3},{"edad":36.0,"acuerdo_cambio":5},
+    {"edad":26.0,"acuerdo_cambio":2},{"edad":31.0,"acuerdo_cambio":4},{"edad":28.0,"acuerdo_cambio":5},{"edad":35.0,"acuerdo_cambio":2},
+    {"edad":24.0,"acuerdo_cambio":5},{"edad":30.0,"acuerdo_cambio":3},{"edad":35.0,"acuerdo_cambio":5},{"edad":31.0,"acuerdo_cambio":1},
+    {"edad":33.0,"acuerdo_cambio":5},{"edad":26.0,"acuerdo_cambio":2},{"edad":30.5,"acuerdo_cambio":5},{"edad":21.0,"acuerdo_cambio":5},{"edad":21.0,"acuerdo_cambio":5}
+  ],
+  "scatter_edad_satisfaccion": [
+    {"edad":24.0,"satisfaccion":2},{"edad":31.0,"satisfaccion":3},{"edad":34.0,"satisfaccion":2},{"edad":36.0,"satisfaccion":2},
+    {"edad":26.0,"satisfaccion":2},{"edad":31.0,"satisfaccion":1},{"edad":28.0,"satisfaccion":2},{"edad":35.0,"satisfaccion":1},
+    {"edad":24.0,"satisfaccion":3},{"edad":30.0,"satisfaccion":1},{"edad":35.0,"satisfaccion":1},{"edad":31.0,"satisfaccion":1},
+    {"edad":33.0,"satisfaccion":3},{"edad":26.0,"satisfaccion":3},{"edad":30.5,"satisfaccion":3},{"edad":21.0,"satisfaccion":2},{"edad":21.0,"satisfaccion":2}
+  ],
+  "cross_prob1_prob2": {
+    "prob1_labels": ["Acceso a educación de calidad","Falta de empleo / oportunidades laborales","Inseguridad","No especifica","Transporte público deficiente"],
+    "prob2_labels": ["Falta de espacios recreativos / culturales","No especifica","Respuesta abierta (otro)","Vivienda / costo de vida"],
+    "matrix": [[0,0,1,0],[1,3,0,5],[2,1,1,1],[0,0,1,1],[1,0,0,0]]
+  },
+  "cross_genero_prob1": {
+    "genero_labels": ["Hombre","Mujer"],
+    "prob1_labels": ["Acceso a educación de calidad","Falta de empleo / oportunidades laborales","Inseguridad","No especifica","Transporte público deficiente"],
+    "matrix": [[0,6,3,1,0],[1,3,2,0,1]]
+  },
+  "que_cambiaria": [
+    "Potenciar el sector industrial","El apoyo mutuo de la juventud","El alcalde","La cultura de las fiestas que se promueve tanto aquí","Su idiosincrasia",
+    "Cambiaría el enfoque del diseño de la ciudad en lugar de que sea apta para los vehículos que sea adaptada a las personas, urbanismo táctico, infraestructura ciclista y peatonal de calidad",
+    "La planificación urbana","La basura en calles","La inseguridad",
+    "Las organizaciones pseudo juveniles que funcionan como incubadora de politiqueros, que no participan no se organizan mucho menos critican las estructuras de poder...dan vergüenza",
+    "Empleo que no sea por palancas sino por merito","El alcalde","Su gobierno","Consciencia Social",
+    "Garantizar el acceso a la educación para todos de calidad y calidez desde las instancias inferiores hasta superiores, solo así se forjarán personas con pensamiento desarrollado y crítico que aporten a la sociedad."
+  ]
+};
+</script>
+<script>
+// ════════════════════════════════════════════════════════════
+// DATOS — FUENTE 3: OBSERVATORIO ECONÓMICO UNACH, BOLETÍN N°15 (feb. 2026)
+// Construido únicamente con cifras EXPLÍCITAS del boletín.
+// Donde el documento no da un número confiable, se omite o se marca "approx".
+// ════════════════════════════════════════════════════════════
+const OBS = {
+  fuente: "Observatorio Económico, Universidad Nacional de Chimborazo (UNACH), Boletín N°15, febrero 2026",
+
+  imd: {
+    riobamba_dimensiones: {
+      "Acceso": 0.63, "Habilidades digitales": 0.61, "Conectividad": 0.60,
+      "Uso servicios digitales": 0.54, "Satisfacción serv. municipales": 0.53, "Participación ciudadana digital": 0.52
+    },
+    global_ciudades: { "Ambato": 0.59, "Milagro": 0.56, "Riobamba": 0.56, "Latacunga": 0.55 }
+  },
+
+  ict: {
+    riobamba_2024: 0.621,
+    global_ciudades_2024: { "Ambato": 0.66, "Riobamba": 0.62, "Latacunga": 0.60, "Milagro": 0.59 },
+    componentes_por_ciudad_2024: {
+      labels: ["Ambiental","Institucional","Sociodemográfico","Económico-empresarial","Infraestructura"],
+      Ambato:        [0.98, 0.88, 0.82, 0.36, 0.28],
+      Riobamba:      [0.90, 0.80, 0.87, 0.30, 0.22],
+      Latacunga:     [0.86, 0.79, 0.80, 0.34, 0.20],
+      Milagro:       [0.68, 0.78, 0.83, 0.41, 0.21]
+    },
+    riobamba_evolucion: { "2021": 0.60, "2024": 0.62 }
+  },
+
+  ipc: {
+    inflacion_riobamba_nov: 0.52, inflacion_riobamba_pico_22nov: 0.88, inflacion_riobamba_dic: 1.22,
+    inflacion_latacunga_nov: 1.04,
+    categoria: {
+      labels: ["Alimentos","Bebidas no alcohólicas"],
+      Riobamba: [0.86, 0.60],
+      Latacunga: [0.93, -1.28]
+    },
+    destacados_clase: [
+      { ciudad:"Latacunga", clase:"Alimenticios n.e.p.", valor:104.14 },
+      { ciudad:"Latacunga", clase:"Hortalizas y legumbres", valor:103.10 },
+      { ciudad:"Riobamba", clase:"Carnes", valor:101.79 },
+      { ciudad:"Riobamba", clase:"Leche, queso y huevos", valor:99.87 }
+    ]
+  },
+
+  icc: {
+    riobamba_serie: [
+      { periodo:"jun-2021", valor:46, approx:true },
+      { periodo:"jun-2022", valor:35.69, approx:false },
+      { periodo:"nov-2023", valor:50, approx:true },
+      { periodo:"nov-2024", valor:37.70, approx:false },
+      { periodo:"nov-2025", valor:43.54, approx:false }
+    ],
+    nacional_nov2025: 38.17
+  },
+
+  iee: {
+    sectorial_nov2025: {
+      labels: ["Servicios","Comercio","Industria","Construcción"],
+      Ambato:     [50.22, 50.13, 49.95, 50.02],
+      Latacunga:  [42.58, 77.32, 50.01, 64.0],
+      Milagro:    [50.14, 50.27, 51.21, 50.11],
+      Riobamba:   [50.20, 50.25, 50.19, 49.76]
+    },
+    construccion_latacunga_approx: true,
+    global_nov2025: { "Latacunga": 52.57, "Milagro": 50.36, "Riobamba": 50.15, "Ambato": 50.10 }
+  },
+
+  digital: {
+    anios: [2015,2016,2017,2018,2019,2020,2021,2022,2023,2024],
+    hogares_internet: {
+      // Solo extremos confirmados; años intermedios no reportados explícitamente -> null
+      Riobamba:   [42.50,null,null,null,null,null,null,null,null,72.90],
+      Latacunga:  [53.45,null,null,null,null,null,null,null,null,79.80],
+      Ambato:     [null,null,null,null,null,null,null,null,null,71.60]
+    },
+    personas_internet: {
+      Riobamba:   [40.51,null,null,null,null,null,null,null,null,76.83],
+      Latacunga:  [45.98,null,null,null,null,null,null,null,null,80.43],
+      Ambato:     [53.24,null,null,null,null,null,null,null,null,86.21]
+    },
+    celular_activado: {
+      Riobamba:   [43.89,null,null,null,null,null,null,null,null,74.35],
+      Latacunga:  [51.77,null,null,null,null,null,null,null,null,81.02],
+      Ambato:     [55.08,null,null,null,null,null,null,null,null,83.05]
+    },
+    smartphone_referencia: { "2018 (promedio Zona 3)": 68, "2025 (Riobamba)": 100 },
+    banda_ancha: {
+      labels: ["Ambato 2020","Riobamba 2020","Riobamba 2025","Latacunga 2025"],
+      valores: [45.57, 45.14, 32.77, 26.61]
+    },
+    analfabetismo_digital_regional: { "2015": 56, "2025": 17 }
+  }
+};
+</script>
+<script>
+// ════════════════════════════════════════════════════════════
+// CONFIGURACIÓN GLOBAL DE CHART.JS Y PALETA
+// ════════════════════════════════════════════════════════════
+Chart.defaults.font.family = "'Space Grotesk', sans-serif";
+Chart.defaults.color = '#D9D2C3';
+Chart.defaults.borderColor = 'rgba(242,237,228,0.08)';
+
+const P = {
+  terra:'#E8623C', terraDim:'#C44E2E', paramo:'#5B8C7B', gold:'#D4AF6A',
+  earthRed:'#C25450', bone:'#F2EDE4', boneDim:'#D9D2C3', blue:'#7D9CB8',
+  violet:'#9B8AC4', line:'rgba(242,237,228,0.08)'
+};
+const SCOL = [P.terra, P.paramo, P.gold, P.earthRed, P.blue, P.violet];
+const CITY4 = [P.terra, P.paramo, P.gold, P.blue]; // Ambato, Riobamba, Latacunga, Milagro (orden consistente)
+
+function grid(){return {x:{grid:{color:P.line}, ticks:{color:P.boneDim, font:{size:11}}}, y:{grid:{color:P.line}, ticks:{color:P.boneDim, font:{size:11}}, beginAtZero:true}};}
+
+// Registro global de instancias Chart.js, para poder destruir/recrear en toggles
+const chartRegistry = {};
+
+// ════════════════════════════════════════════════════════════
+// GRÁFICOS — FUENTE 1: CENSO INEC 2022
+// ════════════════════════════════════════════════════════════
+chartRegistry.chartEdad = new Chart(document.getElementById('chartEdad'), {
+  type:'bar',
+  data:{labels:['0-14 años','15-64 años','65+ años'],
+    datasets:[
+      {label:'2010', data:[D.estructura_edad.pct_0_14_2010, D.estructura_edad.pct_15_64_2010, D.estructura_edad.pct_65mas_2010], backgroundColor:P.boneDim, borderRadius:3},
+      {label:'2022', data:[D.estructura_edad.pct_0_14_2022, D.estructura_edad.pct_15_64_2022, D.estructura_edad.pct_65mas_2022], backgroundColor:P.terra, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+chartRegistry.chartEtnia = new Chart(document.getElementById('chartEtnia'), {
+  type:'bar',
+  data:{labels:['Mestizo/a','Indígena','Blanco/a','Afroecuat.','Montubio/a'],
+    datasets:[
+      {label:'2010', data:[71.0,24.2,3.1,1.4,0.3], backgroundColor:P.boneDim, borderRadius:3},
+      {label:'2022', data:[68.3,29.9,1.0,0.6,0.2], backgroundColor:P.gold, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+chartRegistry.chartOcupadosEdad = new Chart(document.getElementById('chartOcupadosEdad'), {
+  type:'doughnut',
+  data:{labels:['15-17','18-29','30-44','45-64','65+'],
+    datasets:[{data:[D.trabajo_2022.ocupados_por_edad['15_17'],D.trabajo_2022.ocupados_por_edad['18_29'],D.trabajo_2022.ocupados_por_edad['30_44'],D.trabajo_2022.ocupados_por_edad['45_64'],D.trabajo_2022.ocupados_por_edad['65mas']], backgroundColor:SCOL, borderColor:'#1A1F2E', borderWidth:2}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:11}}}}}
+});
+
+chartRegistry.chartDesocupadosEdad = new Chart(document.getElementById('chartDesocupadosEdad'), {
+  type:'doughnut',
+  data:{labels:['15-17','18-29','30-44','45-64','65+'],
+    datasets:[{data:[D.trabajo_2022.desocupados_por_edad['15_17'],D.trabajo_2022.desocupados_por_edad['18_29'],D.trabajo_2022.desocupados_por_edad['30_44'],D.trabajo_2022.desocupados_por_edad['45_64'],D.trabajo_2022.desocupados_por_edad['65mas']], backgroundColor:[P.boneDim,P.terra,P.gold,P.blue,P.earthRed], borderColor:'#1A1F2E', borderWidth:2}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:11}}}}}
+});
+
+chartRegistry.chartRama = new Chart(document.getElementById('chartRama'), {
+  type:'bar',
+  data:{labels:Object.keys(D.trabajo_2022.rama_actividad_ocupados), datasets:[{data:Object.values(D.trabajo_2022.rama_actividad_ocupados), backgroundColor:P.paramo, borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:grid()}
+});
+
+chartRegistry.chartAfiliacion = new Chart(document.getElementById('chartAfiliacion'), {
+  type:'doughnut',
+  data:{labels:['Afiliada','No afiliada'], datasets:[{data:[D.trabajo_2022.afiliacion_seguridad_social_pct, 100-D.trabajo_2022.afiliacion_seguridad_social_pct-1.4], backgroundColor:[P.paramo,P.earthRed], borderColor:'#1A1F2E', borderWidth:2}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:P.boneDim}}}}
+});
+
+chartRegistry.chartInstruccion = new Chart(document.getElementById('chartInstruccion'), {
+  type:'bar',
+  data:{labels:Object.keys(D.educacion.nivel_instruccion_24mas_2022),
+    datasets:[
+      {label:'2010', data:Object.values(D.educacion.nivel_instruccion_24mas_2010), backgroundColor:P.boneDim, borderRadius:3},
+      {label:'2022', data:Object.values(D.educacion.nivel_instruccion_24mas_2022), backgroundColor:P.terra, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+chartRegistry.chartAnalfDigital = new Chart(document.getElementById('chartAnalfDigital'), {
+  type:'bar',
+  data:{labels:['Cantonal','Urbano','Rural','Hombres','Mujeres'],
+    datasets:[
+      {label:'2010', data:[D.educacion.analfabetismo_digital_15_49_2010, null, null, null, null], backgroundColor:P.boneDim, borderRadius:3},
+      {label:'2022', data:[D.educacion.analfabetismo_digital_15_49_2022, D.educacion.analfabetismo_digital_urbano_2022, D.educacion.analfabetismo_digital_rural_2022, D.educacion.analfabetismo_digital_hombres_2022, D.educacion.analfabetismo_digital_mujeres_2022], backgroundColor:P.gold, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+chartRegistry.chartTenencia = new Chart(document.getElementById('chartTenencia'), {
+  type:'bar',
+  data:{labels:Object.keys(D.vivienda.tenencia_vivienda_hogares_2022),
+    datasets:[
+      {label:'2010', data:Object.values(D.vivienda.tenencia_vivienda_hogares_2010), backgroundColor:P.boneDim, borderRadius:3},
+      {label:'2022', data:Object.values(D.vivienda.tenencia_vivienda_hogares_2022), backgroundColor:P.terra, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+chartRegistry.chartTipoHogar = new Chart(document.getElementById('chartTipoHogar'), {
+  type:'bar',
+  data:{labels:Object.keys(D.hogares.tipo_hogar_2022),
+    datasets:[
+      {label:'2010', data:Object.values(D.hogares.tipo_hogar_2010), backgroundColor:P.boneDim, borderRadius:3},
+      {label:'2022', data:Object.values(D.hogares.tipo_hogar_2022), backgroundColor:P.gold, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+// ════════════════════════════════════════════════════════════
+// GRÁFICOS — FUENTE 2: ENCUESTA PILOTO n=17
+// ════════════════════════════════════════════════════════════
+chartRegistry.chartTiempo = new Chart(document.getElementById('chartTiempo'), {
+  type:'line',
+  data:{labels:Object.keys(DATA.respuestas_por_dia),
+    datasets:[{label:'Respuestas', data:Object.values(DATA.respuestas_por_dia), borderColor:P.terra, backgroundColor:'rgba(232,98,60,0.12)', fill:true, tension:0.35, pointBackgroundColor:P.terra, pointRadius:5}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:grid()}
+});
+
+chartRegistry.chartSector = new Chart(document.getElementById('chartSector'), {
+  type:'bar',
+  data:{labels:Object.keys(DATA.sector_macro), datasets:[{label:'Personas', data:Object.values(DATA.sector_macro), backgroundColor:P.paramo, borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:grid()}
+});
+
+chartRegistry.chartProb1 = new Chart(document.getElementById('chartProb1'), {
+  type:'bar',
+  data:{labels:Object.keys(DATA.prob1), datasets:[{label:'Personas', data:Object.values(DATA.prob1), backgroundColor:P.terra, borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:grid()}
+});
+
+chartRegistry.chartGeneroProb1 = new Chart(document.getElementById('chartGeneroProb1'), {
+  type:'bar',
+  data:{labels:DATA.cross_genero_prob1.prob1_labels,
+    datasets:DATA.cross_genero_prob1.genero_labels.map((g,i)=>({label:g, data:DATA.cross_genero_prob1.matrix[i], backgroundColor: i===0 ? P.terra : P.gold, borderRadius:3}))},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}}}, scales:grid()}
+});
+
+chartRegistry.chartHeatmap = new Chart(document.getElementById('chartHeatmap'), {
+  type:'bar',
+  data:{labels:DATA.cross_prob1_prob2.prob1_labels,
+    datasets:DATA.cross_prob1_prob2.prob2_labels.map((p2,i)=>({label:p2, data:DATA.cross_prob1_prob2.matrix.map(row=>row[i]), backgroundColor:SCOL[i % SCOL.length], borderRadius:2}))},
+  options:{responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:10}, boxWidth:12}}},
+    scales:{x:{stacked:true, grid:{color:P.line}, ticks:{color:P.boneDim, font:{size:10}}}, y:{stacked:true, grid:{color:P.line}, ticks:{color:P.boneDim, stepSize:1}, beginAtZero:true}}
+  }
+});
+
+chartRegistry.chartParticipacion = new Chart(document.getElementById('chartParticipacion'), {
+  type:'doughnut',
+  data:{labels:Object.keys(DATA.frecuencia_part), datasets:[{data:Object.values(DATA.frecuencia_part), backgroundColor:SCOL, borderColor:'#1A1F2E', borderWidth:2}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:11}}}}}
+});
+
+chartRegistry.chartIntencion = new Chart(document.getElementById('chartIntencion'), {
+  type:'doughnut',
+  data:{labels:Object.keys(DATA.intencion_simple), datasets:[{data:Object.values(DATA.intencion_simple), backgroundColor:[P.paramo, P.earthRed, P.gold, P.terraDim], borderColor:'#1A1F2E', borderWidth:2}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:11}}}}}
+});
+
+// Scatter con toggle (acuerdo / satisfacción) — variable global mutable
+let scatterMode = 'acuerdo';
+function buildScatterData(mode){
+  const src = mode === 'acuerdo' ? DATA.scatter_edad_acuerdo : DATA.scatter_edad_satisfaccion;
+  const key = mode === 'acuerdo' ? 'acuerdo_cambio' : 'satisfaccion';
+  return src.map(d=>({x:d.edad, y:d[key]}));
+}
+chartRegistry.chartScatter = new Chart(document.getElementById('chartScatter'), {
+  type:'scatter',
+  data:{datasets:[{label:'Persona encuestada', data:buildScatterData('acuerdo'), backgroundColor:P.gold, pointRadius:7, pointHoverRadius:9}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{x:{title:{display:true, text:'Edad', color:P.boneDim}, grid:{color:P.line}, ticks:{color:P.boneDim}},
+            y:{title:{display:true, text:'Puntaje (1-5)', color:P.boneDim}, min:0, max:6, grid:{color:P.line}, ticks:{color:P.boneDim, stepSize:1}}}
+  }
+});
+
+// Word cloud
+const words = [
+  ['alcalde',2.4],['sea',2.2],['personas',2.0],['calidad',2.0],['sociedad',2.0],
+  ['empleo',1.7],['gobierno',1.7],['inseguridad',1.7],['educación',1.6],['planificación',1.5],
+  ['urbanismo',1.4],['ciudad',1.4],['mérito',1.3],['vergüenza',1.2],['conciencia',1.2],
+  ['vehículos',1.1],['peatonal',1.1],['política',1.3],['juventud',1.2],['idiosincrasia',1.0]
+];
+const wcColors = [P.terra, P.gold, P.paramo, P.bone, P.earthRed];
+const wc = document.getElementById('wordcloud');
+words.forEach((w,i)=>{
+  const s = document.createElement('span');
+  s.textContent = w[0];
+  s.style.fontSize = w[1] + 'rem';
+  s.style.color = wcColors[i % wcColors.length];
+  s.style.opacity = 0.55 + (w[1]/2.4)*0.45;
+  wc.appendChild(s);
+});
+</script>
+<script>
+// ════════════════════════════════════════════════════════════
+// GRÁFICOS — FUENTE 3: OBSERVATORIO ECONÓMICO UNACH
+// ════════════════════════════════════════════════════════════
+
+// --- IMD ---
+chartRegistry.chartIMDRiobamba = new Chart(document.getElementById('chartIMDRiobamba'), {
+  type:'bar',
+  data:{labels:Object.keys(OBS.imd.riobamba_dimensiones),
+    datasets:[{label:'IMD (0-1)', data:Object.values(OBS.imd.riobamba_dimensiones),
+      backgroundColor:Object.values(OBS.imd.riobamba_dimensiones).map(v => v >= 0.58 ? P.paramo : P.violet), borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false},
+    tooltip:{callbacks:{label:(ctx)=>`IMD: ${ctx.parsed.x.toFixed(2)}`}}}, scales:{...grid(), x:{...grid().x, max:1, beginAtZero:true}}}
+});
+
+const cityColorMap = {Ambato:P.terra, Riobamba:P.paramo, Latacunga:P.gold, Milagro:P.blue};
+const cityOrderDefault = ["Ambato","Riobamba","Latacunga","Milagro"];
+let selectedCities = {Ambato:true, Riobamba:true, Latacunga:true, Milagro:true};
+
+chartRegistry.chartIMD4Ciudades = new Chart(document.getElementById('chartIMD4Ciudades'), {
+  type:'bar',
+  data:{labels:Object.keys(OBS.imd.global_ciudades), datasets:[{label:'IMD global', data:Object.values(OBS.imd.global_ciudades), backgroundColor:Object.keys(OBS.imd.global_ciudades).map(c=>cityColorMap[c]), borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{...grid(), y:{...grid().y, max:1}}}
+});
+
+// --- ICT ---
+chartRegistry.chartICTComponentes = new Chart(document.getElementById('chartICTComponentes'), {
+  type:'bar',
+  data:{labels:OBS.ict.componentes_por_ciudad_2024.labels,
+    datasets:[
+      {label:'Ambato', data:OBS.ict.componentes_por_ciudad_2024.Ambato, backgroundColor:P.terra, borderRadius:2},
+      {label:'Riobamba', data:OBS.ict.componentes_por_ciudad_2024.Riobamba, backgroundColor:P.paramo, borderRadius:2},
+      {label:'Latacunga', data:OBS.ict.componentes_por_ciudad_2024.Latacunga, backgroundColor:P.gold, borderRadius:2},
+      {label:'Milagro', data:OBS.ict.componentes_por_ciudad_2024.Milagro, backgroundColor:P.blue, borderRadius:2}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:10}, boxWidth:12}}}, scales:{...grid(), y:{...grid().y, max:1}}}
+});
+
+chartRegistry.chartICT4Ciudades = new Chart(document.getElementById('chartICT4Ciudades'), {
+  type:'bar',
+  data:{labels:Object.keys(OBS.ict.global_ciudades_2024), datasets:[{label:'ICT global', data:Object.values(OBS.ict.global_ciudades_2024), backgroundColor:Object.keys(OBS.ict.global_ciudades_2024).map(c=>cityColorMap[c]), borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{...grid(), y:{...grid().y, max:1}}}
+});
+
+// --- IPC ---
+chartRegistry.chartIPCCategoria = new Chart(document.getElementById('chartIPCCategoria'), {
+  type:'bar',
+  data:{labels:OBS.ipc.categoria.labels,
+    datasets:[
+      {label:'Riobamba', data:OBS.ipc.categoria.Riobamba, backgroundColor:P.paramo, borderRadius:3},
+      {label:'Latacunga', data:OBS.ipc.categoria.Latacunga, backgroundColor:P.gold, borderRadius:3}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}},
+    tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${ctx.parsed.y}%`}}}, scales:grid()}
+});
+
+chartRegistry.chartIPCDestacados = new Chart(document.getElementById('chartIPCDestacados'), {
+  type:'bar',
+  data:{labels:OBS.ipc.destacados_clase.map(d=>`${d.clase} (${d.ciudad})`),
+    datasets:[{label:'Puntos del índice', data:OBS.ipc.destacados_clase.map(d=>d.valor),
+      backgroundColor:OBS.ipc.destacados_clase.map(d=> d.ciudad==='Riobamba' ? P.paramo : P.gold), borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', plugins:{legend:{display:false}}, scales:grid()}
+});
+
+// --- ICC (con puntos aproximados marcados visualmente distinto) ---
+const iccLabels = OBS.icc.riobamba_serie.map(d=>d.periodo);
+const iccValues = OBS.icc.riobamba_serie.map(d=>d.valor);
+const iccPointColors = OBS.icc.riobamba_serie.map(d=> d.approx ? 'rgba(212,175,106,0.4)' : P.terra);
+const iccPointBorders = OBS.icc.riobamba_serie.map(d=> d.approx ? P.gold : P.terra);
+const iccPointRadii = OBS.icc.riobamba_serie.map(d=> d.approx ? 8 : 6);
+chartRegistry.chartICCEvolucion = new Chart(document.getElementById('chartICCEvolucion'), {
+  type:'line',
+  data:{labels:[...iccLabels, 'nov-2025 (nacional)'],
+    datasets:[
+      {label:'Riobamba', data:[...iccValues, null], borderColor:P.terra, backgroundColor:'rgba(232,98,60,0.08)', fill:true, tension:0.3,
+        pointBackgroundColor:iccPointColors, pointBorderColor:iccPointBorders, pointRadius:iccPointRadii, pointHoverRadius:9},
+      {label:'Nacional urbano (referencia nov-2025)', data:[null,null,null,null,OBS.icc.riobamba_serie.length>=5?OBS.icc.nacional_nov2025:null, OBS.icc.nacional_nov2025],
+        borderColor:P.blue, borderDash:[5,4], pointBackgroundColor:P.blue, pointRadius:6, tension:0}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:P.boneDim}},
+      tooltip:{callbacks:{label:(ctx)=>{
+        const idx = ctx.dataIndex;
+        const isApprox = ctx.datasetIndex===0 && OBS.icc.riobamba_serie[idx] && OBS.icc.riobamba_serie[idx].approx;
+        return `${ctx.dataset.label}: ${ctx.parsed.y}` + (isApprox ? ' (aproximado)' : '');
+      }}}
+    }, scales:{...grid(), y:{...grid().y, min:0, max:60}}
+  }
+});
+
+// --- IEE ---
+chartRegistry.chartIEESectorial = new Chart(document.getElementById('chartIEESectorial'), {
+  type:'bar',
+  data:{labels:OBS.iee.sectorial_nov2025.labels,
+    datasets:[
+      {label:'Ambato', data:OBS.iee.sectorial_nov2025.Ambato, backgroundColor:P.terra, borderRadius:2},
+      {label:'Latacunga', data:OBS.iee.sectorial_nov2025.Latacunga, backgroundColor:P.gold, borderRadius:2},
+      {label:'Milagro', data:OBS.iee.sectorial_nov2025.Milagro, backgroundColor:P.blue, borderRadius:2},
+      {label:'Riobamba', data:OBS.iee.sectorial_nov2025.Riobamba, backgroundColor:P.paramo, borderRadius:2}
+    ]},
+  options:{responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom', labels:{color:P.boneDim, font:{size:10}, boxWidth:12}},
+      annotation:{}},
+    scales:{...grid(), y:{...grid().y, min:0, max:90, grid:{...grid().y.grid}}}
+  }
+});
+// Línea de referencia "umbral neutral 50" dibujada manualmente via plugin sencillo
+Chart.register({
+  id:'neutralLine50',
+  afterDraw(chart){
+    if(chart.canvas.id !== 'chartIEESectorial' && chart.canvas.id !== 'chartIEEGlobal') return;
+    const {ctx, chartArea, scales} = chart;
+    if(!scales.y) return;
+    const y50 = scales.y.getPixelForValue(50);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(242,237,228,0.35)';
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, y50);
+    ctx.lineTo(chartArea.right, y50);
+    ctx.stroke();
+    ctx.restore();
+  }
+});
+
+chartRegistry.chartIEEGlobal = new Chart(document.getElementById('chartIEEGlobal'), {
+  type:'bar',
+  data:{labels:Object.keys(OBS.iee.global_nov2025),
+    datasets:[{label:'IEE Global', data:Object.values(OBS.iee.global_nov2025),
+      backgroundColor:Object.entries(OBS.iee.global_nov2025).map(([k,v]) => v>50 ? P.paramo : P.boneDim), borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{...grid(), y:{...grid().y, min:0, max:60}}}
+});
+
+// --- Smartphone (referencia simple) ---
+chartRegistry.chartSmartphone = new Chart(document.getElementById('chartSmartphone'), {
+  type:'bar',
+  data:{labels:Object.keys(OBS.digital.smartphone_referencia), datasets:[{label:'% cobertura', data:Object.values(OBS.digital.smartphone_referencia), backgroundColor:[P.boneDim, P.terra], borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{...grid(), y:{...grid().y, max:110}}}
+});
+
+// --- Banda ancha ---
+chartRegistry.chartBandaAncha = new Chart(document.getElementById('chartBandaAncha'), {
+  type:'bar',
+  data:{labels:OBS.digital.banda_ancha.labels, datasets:[{label:'% cobertura', data:OBS.digital.banda_ancha.valores, backgroundColor:[P.boneDim, P.boneDim, P.terra, P.gold], borderRadius:3}]},
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:grid()}
+});
+
+// ════════════════════════════════════════════════════════════
+// COMPONENTE INTERACTIVO: Evolución digital (toggle métrica + slider año)
+// ════════════════════════════════════════════════════════════
+const digitalMetricMap = {
+  hogares:  { data: OBS.digital.hogares_internet, subhead: 'Hogares con internet (%)',
+    insight: 'El acceso a internet en el hogar en Riobamba pasó de <strong>42,5% (2015) a 72,9% (2024)</strong>. Latacunga lo supera levemente, llegando a 79,8%. El dato de Ambato en 2015 no está disponible en el boletín.' },
+  personas: { data: OBS.digital.personas_internet, subhead: 'Personas que usan internet (%)',
+    insight: 'El uso de internet en Riobamba pasó de <strong>40,5% (2015) a 76,8% (2024)</strong> — el crecimiento porcentual más alto de las tres ciudades, aunque sigue por debajo de Ambato (86,2%) y Latacunga (80,4%).' },
+  celular:  { data: OBS.digital.celular_activado, subhead: 'Celular activado (%)',
+    insight: 'La activación de celular en Riobamba pasó de <strong>43,9% (2015) a 74,4% (2024)</strong>, consistentemente por debajo de Ambato (83,1%) y Latacunga (81,0%) en todo el período.' }
+};
+const cityColors = {Riobamba:P.terra, Latacunga:P.paramo, Ambato:P.gold};
+let currentDigitalMetric = 'personas';
+
+function buildDigitalChartData(metric, yearMax){
+  const md = digitalMetricMap[metric].data;
+  const maxIdx = OBS.digital.anios.indexOf(yearMax);
+  const labels = OBS.digital.anios.slice(0, maxIdx+1);
+  const datasets = Object.keys(md).filter(city => selectedCities[city]).map(city => ({
+    label: city, data: md[city].slice(0, maxIdx+1),
+    borderColor: cityColors[city] || P.blue, backgroundColor:'transparent',
+    spanGaps:true, tension:0.3, pointRadius:4, pointHoverRadius:7
+  }));
+  return {labels, datasets};
+}
+
+chartRegistry.chartDigitalEvol = new Chart(document.getElementById('chartDigitalEvol'), {
+  type:'line',
+  data: buildDigitalChartData('personas', 2024),
+  options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:P.boneDim}}}, scales:{...grid(), y:{...grid().y, max:100}}}
+});
+
+function refreshDigitalChart(){
+  const yearMax = parseInt(document.getElementById('yearSlider').value, 10);
+  chartRegistry.chartDigitalEvol.data = buildDigitalChartData(currentDigitalMetric, yearMax);
+  chartRegistry.chartDigitalEvol.update();
+  document.getElementById('digitalSubhead').textContent = digitalMetricMap[currentDigitalMetric].subhead;
+  document.getElementById('digitalInsight').innerHTML = digitalMetricMap[currentDigitalMetric].insight;
+  document.getElementById('yearSliderVal').textContent = yearMax;
+}
+
+document.querySelectorAll('.toggle-btn[data-digital]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.toggle-btn[data-digital]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentDigitalMetric = btn.getAttribute('data-digital');
+    refreshDigitalChart();
+  });
+});
+document.getElementById('yearSlider').addEventListener('input', refreshDigitalChart);
+
+// Toggle scatter (encuesta piloto)
+document.querySelectorAll('.toggle-btn[data-scatter]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.toggle-btn[data-scatter]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.getAttribute('data-scatter');
+    chartRegistry.chartScatter.data.datasets[0].data = buildScatterData(mode);
+    chartRegistry.chartScatter.options.scales.y.title.text = mode === 'acuerdo' ? 'Acuerdo (1-5)' : 'Satisfacción (1-5)';
+    chartRegistry.chartScatter.update();
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+// SELECTOR DE CIUDADES — afecta todos los gráficos comparativos
+// ════════════════════════════════════════════════════════════
+function rebuildCityBar(chart, originalObj, useThresholdColor){
+  const cities = cityOrderDefault.filter(c => selectedCities[c] && originalObj.hasOwnProperty(c));
+  chart.data.labels = cities;
+  chart.data.datasets[0].data = cities.map(c=>originalObj[c]);
+  chart.data.datasets[0].backgroundColor = cities.map(c=>{
+    if(useThresholdColor) return originalObj[c] > 50 ? P.paramo : P.boneDim;
+    return cityColorMap[c] || P.blue;
+  });
+  chart.update();
+}
+
+function refreshCityCharts(){
+  // 1. Gráficos con un dataset POR ciudad (componentes/sectorial): usar setDatasetVisibility
+  [chartRegistry.chartICTComponentes, chartRegistry.chartIEESectorial].forEach(ch=>{
+    if(!ch) return;
+    ch.data.datasets.forEach((ds, idx)=>{
+      ch.setDatasetVisibility(idx, !!selectedCities[ds.label]);
+    });
+    ch.update();
+  });
+  // 2. Gráficos con un solo dataset, ciudades en las etiquetas: reconstruir filtrado
+  rebuildCityBar(chartRegistry.chartIMD4Ciudades, OBS.imd.global_ciudades, false);
+  rebuildCityBar(chartRegistry.chartICT4Ciudades, OBS.ict.global_ciudades_2024, false);
+  rebuildCityBar(chartRegistry.chartIEEGlobal, OBS.iee.global_nov2025, true);
+  // 3. Evolución digital: ciudad = dataset, se reconstruye con su propia función (ya filtra por selectedCities)
+  refreshDigitalChart();
+}
+
+document.querySelectorAll('.city-pill').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const city = btn.getAttribute('data-city');
+    const activeCount = Object.values(selectedCities).filter(Boolean).length;
+    if(selectedCities[city] && activeCount === 1) return; // siempre dejar al menos 1 ciudad activa
+    selectedCities[city] = !selectedCities[city];
+    btn.classList.toggle('active', selectedCities[city]);
+    refreshCityCharts();
+  });
+});
+</script>
+<!-- ============ BARRA DE TOUR GUIADO ============ -->
+<div class="tour-bar" id="tourBar">
+  <div class="twrap">
+    <span class="tour-progress mono" id="tourProgress">Paso 1 de 10</span>
+    <span class="tour-caption" id="tourCaption">…</span>
+    <div class="tour-controls">
+      <button id="tourPrev">‹ Anterior</button>
+      <button id="tourPlayPause">⏸ Pausar</button>
+      <button id="tourNext">Siguiente ›</button>
+      <button id="tourExit">✕ Salir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// FILTRO POR FUENTE
+// ════════════════════════════════════════════════════════════
+const filterButtons = document.querySelectorAll('.filter-btn');
+const filterableSections = document.querySelectorAll('section[data-source]');
+
+function countVisible(){
+  let n = 0;
+  filterableSections.forEach(s=>{ if(!s.classList.contains('is-hidden')) n++; });
+  document.getElementById('filterCount').textContent = `${n} de ${filterableSections.length} secciones visibles`;
+}
+
+filterButtons.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    filterButtons.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.getAttribute('data-filter');
+    filterableSections.forEach(s=>{
+      const src = s.getAttribute('data-source');
+      if(f === 'todos' || src === 'todos' || src === f){
+        s.classList.remove('is-hidden');
+      } else {
+        s.classList.add('is-hidden');
+      }
+    });
+    countVisible();
+  });
+});
+countVisible();
+
+// ════════════════════════════════════════════════════════════
+// ENLACES INSIGHT → GRÁFICO (scroll + resaltado pulse)
+// ════════════════════════════════════════════════════════════
+function jumpToCard(targetId){
+  const el = document.getElementById(targetId);
+  if(!el) return;
+  // Asegurarse de que la sección contenedora no esté oculta por el filtro
+  const parentSection = el.closest('section[data-source]');
+  if(parentSection && parentSection.classList.contains('is-hidden')){
+    // Activar "Todos" para poder mostrar la tarjeta destino
+    document.querySelector('.filter-btn[data-filter="todos"]').click();
+  }
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.remove('pulse');
+  // Forzar reflow para reiniciar animación si se hace clic varias veces
+  void el.offsetWidth;
+  el.classList.add('pulse');
+  setTimeout(()=>el.classList.remove('pulse'), 1900);
+}
+
+document.querySelectorAll('.insight-link[data-target]').forEach(btn=>{
+  btn.addEventListener('click', ()=> jumpToCard(btn.getAttribute('data-target')));
+});
+document.querySelectorAll('a.insight-jump[data-target]').forEach(a=>{
+  a.addEventListener('click', (e)=>{ e.preventDefault(); jumpToCard(a.getAttribute('data-target')); });
+});
+// ════════════════════════════════════════════════════════════
+// GLOSARIO — mostrar/ocultar
+// ════════════════════════════════════════════════════════════
+const glossaryBtn = document.getElementById('glossaryToggleBtn');
+const glossaryBody = document.getElementById('glossaryBody');
+glossaryBtn.addEventListener('click', ()=>{
+  glossaryBody.classList.toggle('open');
+});
+
+// Botón rápido desde la cabecera (junto a los badges de fuentes)
+const glossaryQuickBtn = document.getElementById('glossaryQuickBtn');
+glossaryQuickBtn.addEventListener('click', ()=>{
+  glossaryBody.classList.add('open');
+  const sec = document.getElementById('glosario');
+  sec.scrollIntoView({behavior:'smooth', block:'start'});
+  sec.classList.remove('pulse');
+  void sec.offsetWidth;
+  sec.classList.add('pulse');
+  setTimeout(()=>sec.classList.remove('pulse'), 1900);
+});
+
+// ════════════════════════════════════════════════════════════
+// TOOLTIPS DE GLOSARIO — se envuelven automáticamente las siglas
+// en todo el texto del dashboard (excepto dentro del glosario mismo)
+// ════════════════════════════════════════════════════════════
+const GLOSS = {
+  "IMD":  "Índice de Madurez Digital. Mide de 0 a 1 qué tanto una ciudad adopta y usa la tecnología digital.",
+  "ICT":  "Índice de Competitividad Territorial. Mide de 0 a 1 qué tan competitivo es un territorio en 5 dimensiones.",
+  "IPC":  "Índice de Precios al Consumidor. Mide la inflación de una canasta de bienes y servicios.",
+  "ICC":  "Índice de Confianza del Consumidor. Mide el optimismo económico de los hogares, escala 0–100.",
+  "IEE":  "Índice de Expectativas de la Economía. Mide la confianza empresarial a futuro, por sector.",
+  "NBI":  "Necesidades Básicas Insatisfechas. Mide pobreza estructural en 5 dimensiones (vivienda, servicios, educación, ingreso, hacinamiento).",
+  "BGU":  "Bachillerato General Unificado. Los 3 últimos años de secundaria en Ecuador (15-17 años).",
+  "PEA":  "Población Económicamente Activa. Personas que trabajan o buscan trabajo activamente.",
+  "EMOE": "Encuesta Mensual de Opinión Empresarial. Alimenta el cálculo del IEE.",
+  "CIIU": "Clasificación Industrial Internacional Uniforme. Sistema estándar para clasificar empresas por actividad.",
+  "VAB":  "Valor Agregado Bruto. Pondera el peso de cada sector en el IEE Global."
+};
+
+function wrapGlossaryTerms(root){
+  const termsRegex = new RegExp('\\b(' + Object.keys(GLOSS).join('|') + ')\\b', 'g');
+  const skipSelectors = '#glosario, script, style, .filter-btn, .toggle-btn, .src-badge, .macro-tag, .city-pill, .tour-bar, .glossary-quick-btn, .tour-start-btn';
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node){
+      if(!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      const p = node.parentElement;
+      if(!p) return NodeFilter.FILTER_REJECT;
+      if(p.closest(skipSelectors)) return NodeFilter.FILTER_REJECT;
+      if(p.classList && p.classList.contains('gloss-term')) return NodeFilter.FILTER_REJECT;
+      termsRegex.lastIndex = 0;
+      if(!termsRegex.test(node.nodeValue)) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const targets = [];
+  let n;
+  while(n = walker.nextNode()) targets.push(n);
+  targets.forEach(node=>{
+    const frag = document.createDocumentFragment();
+    const text = node.nodeValue;
+    let lastIdx = 0;
+    termsRegex.lastIndex = 0;
+    let m;
+    while((m = termsRegex.exec(text)) !== null){
+      frag.appendChild(document.createTextNode(text.slice(lastIdx, m.index)));
+      const span = document.createElement('span');
+      span.className = 'gloss-term';
+      span.setAttribute('data-tooltip', GLOSS[m[1]]);
+      span.textContent = m[1];
+      frag.appendChild(span);
+      lastIdx = m.index + m[1].length;
+    }
+    frag.appendChild(document.createTextNode(text.slice(lastIdx)));
+    node.parentNode.replaceChild(frag, node);
+  });
+}
+wrapGlossaryTerms(document.body);
+
+// ════════════════════════════════════════════════════════════
+// TOUR GUIADO
+// ════════════════════════════════════════════════════════════
+const tourSteps = [
+  {target:'.hero', caption:'Bienvenido. Este dashboard integra 3 fuentes distintas sobre Riobamba: un censo completo, una encuesta piloto y un boletín económico regional.'},
+  {target:'#resumen', caption:'Empezamos con 6 señales que aparecen en más de una fuente al mismo tiempo — eso las hace más confiables que un solo dato aislado.'},
+  {target:'#card-chartDesocupadosEdad', caption:'El censo (260,882 personas) confirma que el 48% de los desocupados de Riobamba tiene entre 18 y 29 años.'},
+  {target:'#card-chartProb1', caption:'De forma totalmente independiente, la encuesta piloto (17 jóvenes) señala el empleo como su problema #1.'},
+  {target:'#card-chartIMDRiobamba', caption:'El Observatorio Económico mide que la participación ciudadana digital es el punto más débil de Riobamba — 0,52 sobre 1.'},
+  {target:'#card-chartICTComponentes', caption:'La infraestructura es la debilidad que comparten las 4 ciudades de la Zona 3, no solo Riobamba. Usa el selector de ciudades para comparar.'},
+  {target:'#card-chartDigitalEvol', caption:'Una década de evolución en conectividad. Prueba los botones y el control deslizante para explorar año por año.'},
+  {target:'#puente', caption:'Aquí se cruzan las tres fuentes en un solo lugar — los mismos problemas, vistos con instrumentos distintos.'},
+  {target:'#insights', caption:'8 hallazgos explicados con dos lecturas: una para quien está aprendiendo a leer datos, y otra para quien debe decidir algo con ellos.'},
+  {target:'#glosario', caption:'Y si alguna sigla no quedó clara en el camino, aquí está el glosario completo — o simplemente pasa el cursor sobre cualquier sigla subrayada en el texto.'}
+];
+let tourIndex = 0;
+let tourTimer = null;
+let tourPaused = false;
+const TOUR_STEP_MS = 7500;
+
+function showTourStep(i){
+  tourIndex = i;
+  const step = tourSteps[i];
+  const el = document.querySelector(step.target);
+  if(el){
+    const parentSection = el.closest('section[data-source]');
+    if(parentSection && parentSection.classList.contains('is-hidden')){
+      document.querySelector('.filter-btn[data-filter="todos"]').click();
+    }
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.remove('pulse');
+    void el.offsetWidth;
+    el.classList.add('pulse');
+    setTimeout(()=>el.classList.remove('pulse'), 1900);
+  }
+  document.getElementById('tourCaption').textContent = step.caption;
+  document.getElementById('tourProgress').textContent = `Paso ${i+1} de ${tourSteps.length}`;
+  clearTimeout(tourTimer);
+  if(!tourPaused){
+    tourTimer = setTimeout(()=>{
+      if(tourIndex < tourSteps.length - 1) showTourStep(tourIndex+1);
+      else exitTour();
+    }, TOUR_STEP_MS);
+  }
+}
+function startTour(){
+  document.getElementById('tourBar').classList.add('active');
+  tourPaused = false;
+  document.getElementById('tourPlayPause').textContent = '⏸ Pausar';
+  showTourStep(0);
+}
+function exitTour(){
+  clearTimeout(tourTimer);
+  document.getElementById('tourBar').classList.remove('active');
+}
+document.getElementById('tourStartBtn').addEventListener('click', startTour);
+document.getElementById('tourPrev').addEventListener('click', ()=>{ if(tourIndex>0) showTourStep(tourIndex-1); });
+document.getElementById('tourNext').addEventListener('click', ()=>{ if(tourIndex<tourSteps.length-1) showTourStep(tourIndex+1); else exitTour(); });
+document.getElementById('tourExit').addEventListener('click', exitTour);
+document.getElementById('tourPlayPause').addEventListener('click', (e)=>{
+  tourPaused = !tourPaused;
+  e.target.textContent = tourPaused ? '▶ Reanudar' : '⏸ Pausar';
+  if(!tourPaused) showTourStep(tourIndex);
+  else clearTimeout(tourTimer);
+});
+</script>
+</body>
+</html>
